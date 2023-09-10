@@ -1,32 +1,54 @@
 # Inventory Manager
 
-A simple inventory manager for managing any kind of hierarchical inventory.
+A simple-ish inventory manager for managing any kind of hierarchical inventory.
 
 ## Features
 
--   Has 2 concepts: `Location` and `Category`
-    -   Both can be nested
-    -   A category can have multiple parent categories
--   A single item consists of a `Category`(s) and a `Location`
-    -   A items location can be either a `Location` or a another item
-    -   Items can be moved between locations
-    -   A item can have multiple categories
--   Example:
+-   Has 3 concepts: `Location` and `Category` and `Item`
+    -   All of them can be nested
+-   There are item types and actual items. A item type describes the item, and an actual item is an instance of an item type.
+    -   For example, a `CPU` item type describes a CPU, and an actual item is the physical CPU(s).
+-   Additionally there are users and groups. Users can be in groups. A single category can be assigned to a group, and only users in that group can see that category. A user can only see the locations and items that are in categories that they can see.
 
-    -   Categories:
+## Example structure
+
+-   Categories:
+    -   Electronics
+        -   Computers
         -   Computer parts
             -   CPU
             -   GPU
             -   RAM
-    -   Locations:
-        -   My room
-            -   Location: My desk
-            -   Location: My shelf
-                -   Item: Computer
-    -   Items
-        -   memory
-            -   Type: DDR4
-            -   Size: 8GB
-            -   Categories: RAM
-            -   ActualItem:
-                -   Location: Computer
+                -   DDR5
+                -   DDR4
+-   Locations:
+    -   My room
+        -   My desk
+        -   My shelf
+-   Items
+    -   memory
+        -   Size: 4GB
+        -   Categories: DDR4
+        -   ActualItems:
+            -   My shelf: 4
+    -   memory
+        -   Size: 16GB
+        -   Categories: DDR4
+        -   ActualItems:
+            -   mainComputer: 2
+            -   My shelf: 2
+    -   cpu
+        -   Type: Some CPU
+        -   Cores: 4
+        -   Categories: CPU
+        -   ActualItems:
+            -   mainComputer: 1
+    -   computer
+        -   Categories: Computers
+        -   ActualItems:
+            -   MyDesk: 1
+    -   gpu
+        -   Type: Some GPU
+        -   Categories: GPU
+        -   ActualItems:
+            -   mainComputer: 1
