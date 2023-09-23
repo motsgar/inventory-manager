@@ -52,3 +52,13 @@ A simple-ish inventory manager for managing any kind of hierarchical inventory.
         -   Categories: GPU
         -   ActualItems:
             -   mainComputer: 1
+
+## How to run
+
+-   Install venv
+-   Create venv: `python3 -m venv venv`
+-   Activate venv: `source venv/bin/activate`
+-   Install dependencies: `pip install -r requirements.txt`
+-   setup postgres
+-   Create database: `docker exec -i inventory-dev-postgres psql -U postgres postgres < schema.sql`
+-   Run: `flask --app src/app run --debug`
