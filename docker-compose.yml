@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+    web:
+        build: .
+        ports:
+            - 5001:5000
+        environment:
+            - DATABASE_URL=postgresql://inventory-manager:inventory-password@db/inventory-manager
+        depends_on:
+            - db
+    db:
+        image: postgres
+        volumes:
+            - postgres_data:/var/lib/postgresql/data/
+        environment:
+            - POSTGRES_USER=inventory-manager
+            - POSTGRES_PASSWORD=inventory-password
+            - POSTGRES_DB=inventory-manager
+
+volumes:
+    postgres_data:
