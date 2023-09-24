@@ -2,9 +2,12 @@ FROM python:3.11.5-alpine
 
 WORKDIR /app
 
-COPY requirements.txt .
+RUN pip install --no-cache-dir poetry
+RUN poetry config virtualenvs.create false
 
-RUN pip install --no-cache-dir -r requirements.txt
+COPY pyproject.toml .
+COPY poetry.lock .
+RUN poetry install
 
 COPY src src
 COPY docker-entrypoint.sh .
