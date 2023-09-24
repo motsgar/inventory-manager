@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block content%}
+
+{% if not_found %}
+<p>Location not found</p>
+{% else %}
+<p>Location info</p>
+<p>{{ location_info }}</p>
+<p>Sublocations</p>
+<p>{{ sublocations }}</p>
+{% endif %}
+
+{% endblock %}
