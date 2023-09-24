@@ -1,0 +1,55 @@
+name: Create and publish a Docker image
+
+on:
+  push:
+    branches: ["main"]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.10.8
+
+      - name: Get project version
+        uses: maybe-hello-world/pyproject-check-version@v3
+        id: versioncheck
+
+      - name: Log when unchanged
+        if: steps.versioncheck.outputs.local_version_is_higher == 'false'
+        run: 'echo "No changes detected, skipping build and push"'
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        if: steps.versioncheck.outputs.local_version_is_higher == 'true'
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        if: steps.versioncheck.outputs.local_version_is_higher == 'true'
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest , ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.versioncheck.outputs.local_version }}
+          labels: ${{ steps.meta.outputs.labels }}
