@@ -1,9 +1,6 @@
 from flask import Blueprint, redirect, render_template, request, url_for
-from db.location import (
-    create_location,
-    get_location,
-    get_sublocations,
-)
+
+from db.location import create_location, get_location, get_sublocations
 
 location_bp = Blueprint("location", __name__)
 

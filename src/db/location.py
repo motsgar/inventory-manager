@@ -1,5 +1,6 @@
-from database import db
 from sqlalchemy import text
+
+from database import db
 
 
 # https://learnsql.com/blog/how-to-query-hierarchical-data/
