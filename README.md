@@ -6,7 +6,13 @@ Deployed at [https://inventory-manager.motsgar.fi/location](https://inventory-ma
 
 ## Current state
 
-Recursive data structures are working and the project structure has been figured out. I am kind of late on actual feature implementations, but i'll get the main data structures / features done in the next few days. The UI is still very much a work in progress. It is something that I will work on after the main features are done. This week I spent more time trying to get the project structure right and the dependencies / deployment working.
+Recursive data structures are working and the project structure has been figured out. I am kind of late on actual
+feature implementations, but i'll get the main data structures / features done in the next few days. The UI is still
+very much a work in progress. It is something that I will work on after the main features are done. The previous
+week was spent on other stuff and trying to get the project structure right and the dependencies / deployment working.
+
+The current database initialization is also kind of work in progress. I need to get some kind of database migration
+system working. Currently the database is cleared and re-initialized every time the app is started.
 
 ## Features
 
