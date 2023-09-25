@@ -23,9 +23,6 @@ jobs:
         with:
           python-version: 3.11.5
 
-      - name: Print IMAGE_NAME
-        run: echo ${{ env.IMAGE_NAME }}
-
       - name: Install poetry to get version
         uses: abatilo/actions-poetry@v2
         with:
