@@ -5,12 +5,57 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Inventory manager</title>
+    <style>
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+
+        .popup-wrapper {
+            display: none;
+        }
+
+        .popup {
+            position: fixed;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: white;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+        }
+    </style>
     {% block head %}{% endblock %}
 </head>
 
 <body>
     {% block content %}{% endblock %}
+
+    {% block popup %}
+    {% endblock %}
+
     {% block scripts %}{% endblock %}
+    <script>
+
+        function openPopup(popupId) {
+            const popupElement = document.getElementById(popupId);
+            const popupCloseButton = document.getElementById(`${popupId}-close-button`);
+
+            popupElement.style.display = "block";
+
+            const onClose = () => {
+                popupCloseButton.removeEventListener('click', onClose);
+                popupElement.style.display = "none";
+            };
+            popupCloseButton.addEventListener('click', onClose);
+        }
+    </script>
 </body>
 
 </html>
