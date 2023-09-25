@@ -5,7 +5,8 @@ CREATE TABLE location (
     parent_id INTEGER REFERENCES location,
     name TEXT NOT NULL,
 
-    UNIQUE (parent_id, name),
+    UNIQUE NULLS NOT DISTINCT (parent_id, name),
+
     CONSTRAINT no_empty_name CHECK (name <> ''),
     CONSTRAINT no_slash_in_name CHECK (name !~ '/')
 );
