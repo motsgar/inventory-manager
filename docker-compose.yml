@@ -8,7 +8,8 @@ services:
         environment:
             - DATABASE_URL=postgresql://inventory-manager:inventory-password@db/inventory-manager
         depends_on:
-            - db
+            db:
+                condition: service_healthy
     db:
         image: postgres:16.0-alpine
         volumes:
@@ -17,6 +18,11 @@ services:
             - POSTGRES_USER=inventory-manager
             - POSTGRES_PASSWORD=inventory-password
             - POSTGRES_DB=inventory-manager
+        healthcheck:
+            test: 'pg_isready -U inventory-manager'
+            interval: 1s
+            timeout: 5s
+            retries: 20
 
 volumes:
     postgres_data:

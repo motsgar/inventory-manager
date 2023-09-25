@@ -67,8 +67,18 @@ system working. Currently the database is cleared and re-initialized every time 
 
 ## How to run
 
+### To just locally run the prod application with docker
+
+Run `docker-compose up` and the application will be available at `http://localhost:5001/location`
+
+### For development
+
+The database copy paste commands are for docker, but you can also host postgres in any other way.
+
 -   Install poetry
 -   Install dependenciees: `poetry install`
--   setup postgres
--   Create database: `docker exec -i inventory-dev-postgres psql -U postgres postgres < schema.sql`
+-   setup postgres db with docker: `docker run --name inventory-dev-postgres -e POSTGRES_USER=db-user -e POSTGRES_PASSWORD=db-password -e POSTGRES_DB=db-name -d -p 5432:5432 postgres`
+-   Initialize database with schema: `docker exec -i inventory-dev-postgres psql -U db-user db-name < schema.sql`
+-   Create `.env` file with the following contents:
+    -   `DATABASE_URL=postgresql://db-username:db-password@localhost/db-name`
 -   Run: `poetry run flask --app src/app run --debug`
