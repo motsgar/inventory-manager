@@ -1,8 +1,10 @@
 from flask import Blueprint, redirect, render_template, request, url_for
 
+from db.category import get_categories
+from db.item import get_items_in_location
 from db.location import create_location, get_location, get_sublocations
 
-location_bp = Blueprint("location", __name__)
+location_bp = Blueprint("location", __name__, url_prefix="/location")
 
 
 def parse_path(raw_path: str) -> list[str]:
@@ -20,6 +22,7 @@ def location(raw_path):
     if len(path) == 0:
         location_info = None
         child_locations = get_sublocations(None)
+        items = None
     else:
         location_info = get_location(path)
         if location_info is None:
@@ -31,12 +34,17 @@ def location(raw_path):
                 404,
             )
         child_locations = get_sublocations(location_info.id)
+        items = get_items_in_location(location_info.id)
+
+    categories = get_categories()
 
     return render_template(
         "location.html",
         path=path,
         sublocations=child_locations,
+        items=items,
         location_info=location_info,
+        categories=[category.name for category in categories],
     )
 
 

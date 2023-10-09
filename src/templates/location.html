@@ -1,47 +1,132 @@
 {% extends "layout.html" %}
 {% from "macros.html" import popup_wrapper %}
 
-<!-- scripts -->
-
-{% block scripts %}
-<script>
-    const openPopupButton = document.getElementById("openPopupButton");
-
-    openPopupButton.addEventListener("click", () => {
-        openPopup("new-sublocation-popup");
-    });
-</script>
-{% endblock %}
-
 <!-- body -->
 
 {% block content%}
-
 {% if not_found %}
 <h1>Location not found</h1>
 {% else %}
+
 <h2>Current path: /{{path | join('/')}}</h2>
 <h3>Location info</h3>
 <p>{{ location_info }}</p>
 <h3>Sublocations</h3>
-<button id="openPopupButton">Create new sublocation</button>
+<button id="new-sublocation-button">Create new sublocation</button>
+
 {% if path | length > 0 %}
 <a href="../">Go up a level</a>
 {% endif %}
+
 <ul>
     {% for sublocation in sublocations %}
-    <li><a href="{{sublocation.name}}">{{sublocation.name}}</a></li>
+    <li><a href="{{ sublocation.name }}">{{ sublocation.name }}</a></li>
+    {% endfor %}
+</ul>
+
+{% if items is not none %}
+<h3>Items</h3>
+<button id="new-item-button">Create new item</button>
+<ul>
+    {% for item in items %}
+    <li><a href="{{ item.name }}">{{ item.name }}</a></li>
     {% endfor %}
 </ul>
 {% endif %}
+
+{% endif %}
 {% endblock %}
 
+
+<!-- popups -->
+
 {% block popup %}
+
 {% call popup_wrapper("new-sublocation-popup", "Create a new sublocation") %}
 <form method="post">
-    <label for="name">Name of new location:</label>
-    <input type="text" id="name" name="name" required>
+    <label for="location-name">Name of new location:</label>
+    <input type="text" id="location-name" name="name" required>
     <button type="submit">Submit</button>
 </form>
 {% endcall %}
+
+{% call popup_wrapper("new-item-popup", "Create a new item") %}
+<form method="post" action="/item" id="new-item-form">
+    <input type="hidden" name="location" value="{{ path | join('/') }}">
+
+    <label for="item-name">Name of new item:</label>
+    <input type="text" id="item-name" name="name" required>
+    <br>
+
+    <label for="item-category">Category:</label>
+    <select id="item-category" name="category" required onchange="onCategoryChange()">
+        {% for category in categories %}
+        <option value="{{ category }}">{{ category }}</option>
+        {% endfor %}
+    </select>
+
+    <br>
+    <div style="border: 1px solid black; padding: 10px;">
+        <p>Properties:</p>
+
+        <div id="category-properties"></div>
+    </div>
+    <label for="item-count">Count:</label>
+    <input type="number" id="item-count" name="count" value="1" min="1" required>
+    <br>
+    <button type="submit">Submit</button>
+</form>
+{% endcall %}
+
+{% endblock %}
+
+<!-- scripts -->
+
+{% block scripts %}
+<script>
+    const newSublocationButton = document.getElementById("new-sublocation-button");
+
+    newSublocationButton.addEventListener("click", () => {
+        openPopup("new-sublocation-popup");
+    });
+
+    const newItemButton = document.getElementById("new-item-button");
+
+    newItemButton.addEventListener("click", () => {
+        openPopup("new-item-popup");
+    });
+
+    let loadingCategories = false;
+    let previousCategory = "";
+    async function onCategoryChange() {
+        if (loadingCategories) {
+            document.getElementById("item-category").value = previousCategory;
+            return;
+        }
+        const category = document.getElementById("item-category").value;
+        const properties = document.getElementById("category-properties");
+        previousCategory = category;
+        loadingCategories = true;
+
+        properties.innerHTML = "Loading properties...";
+
+        await fetch(`/api/category/properties/${category}`)
+            .then(response => response.json())
+            .then(data => {
+                properties.innerHTML = "";
+                for (const property of data) {
+                    properties.innerHTML += `
+                        <label for="item-property-${property}">${property}:</label>
+                        <input type="text" id="item-property-${property}" name="property.${property}" required>
+                        <br>
+                    `;
+                }
+                loadingCategories = false;
+            }).catch(error => {
+                properties.innerHTML = "Error loading properties";
+                loadingCategories = false;
+                console.error(error);
+            });
+    }
+</script>
 {% endblock %}
