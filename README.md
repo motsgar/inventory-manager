@@ -6,21 +6,24 @@ Deployed at [https://inventory-manager.motsgar.fi/location](https://inventory-ma
 
 ## Current state
 
-Recursive data structures are working and the project structure has been figured out. I am kind of late on actual
-feature implementations, but i'll get the main data structures / features done in the next few days. The UI is still
-very much a work in progress. It is something that I will work on after the main features are done. The previous
-week was spent on other stuff and trying to get the project structure right and the dependencies / deployment working.
+The project data structure is now in a working state and it is possible to add items. The UI is still very much a
+work in progress. I have been stuck on getting the data structure to something that can actually be used, but now that
+it is in a working state, I hope that I can get stuff done faster.
 
-The current database initialization is also kind of work in progress. I need to get some kind of database migration
-system working. Currently the database is cleared and re-initialized every time the app is started.
+I am still kind of late on actual feature implementations. The UI is still very much a work in progress. It is
+something that I will work on after the main features are done.
+
+The current database initialization is still not that good, as it is overwritten every time the application starts.
 
 ## Features
 
 -   Has 3 concepts: `Location` and `Category` and `Item`
     -   All of them can be nested
--   There are item types and actual items. A item type describes the item, and an actual item is an instance of an item type.
-    -   For example, a `CPU` item type describes a CPU, and an actual item is the physical CPU(s).
--   Additionally there are users and groups. Users can be in groups. A single category can be assigned to a group, and only users in that group can see that category. A user can only see the locations and items that are in categories that they can see.
+-   There are item types and actual items. A item type describes the item, and an actual item is where and how many of that item exists.
+
+    -   For example, a `CPU` item type describes a CPU, and an actual item is the count of the physical CPU(s) in different locations.
+
+-   Maybe if I manage to have time there are additionally users and groups. Users can be in groups. A single category can be assigned to a group, and only users in that group can modify items in that category.
 
 ## Example structure
 
