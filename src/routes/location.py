@@ -2,9 +2,15 @@ from flask import Blueprint, redirect, render_template, request, url_for
 
 from db.category import get_categories
 from db.item import get_items_in_location
-from db.location import create_location, get_location, get_sublocations
+from db.location import (
+    create_location,
+    get_all_locations,
+    get_location,
+    get_sublocations,
+)
 
 location_bp = Blueprint("location", __name__, url_prefix="/location")
+location_api_bp = Blueprint("location_api", __name__, url_prefix="/api/location")
 
 
 def parse_path(raw_path: str) -> list[str]:
@@ -12,6 +18,12 @@ def parse_path(raw_path: str) -> list[str]:
         return []
     else:
         return raw_path.split("/")
+
+
+@location_api_bp.route("/all")
+def fetch_locations():
+    locations = get_all_locations()
+    return locations
 
 
 @location_bp.route("/", defaults={"raw_path": ""})

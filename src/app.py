@@ -12,5 +12,6 @@ db.init_app(app)
 
 app.register_blueprint(index.index_bp)
 app.register_blueprint(location.location_bp)
+app.register_blueprint(location.location_api_bp)
 app.register_blueprint(category.category_api_bp)
 app.register_blueprint(item.item_bp)

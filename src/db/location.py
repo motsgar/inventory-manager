@@ -60,3 +60,31 @@ def create_location(location_name: str, parent_id: int | None):
         {"name": location_name, "parent_id": parent_id},
     )
     db.session.commit()
+
+
+def get_all_locations():
+    locations = db.session.execute(
+        text(
+            """
+                WITH RECURSIVE location_hierarchy AS (
+                    SELECT id, parent_id, name, CAST(name AS text) AS path
+                    FROM location
+                    WHERE parent_id IS NULL
+                    UNION ALL
+                    SELECT location.id, location.parent_id, location.name, location_hierarchy.path || '/' || location.name 
+                    FROM location, location_hierarchy
+                    WHERE location.parent_id = location_hierarchy.id
+                )
+                SELECT id, name, path, parent_id FROM location_hierarchy
+            """
+        )
+    ).fetchall()
+    return [
+        {
+            "id": location.id,
+            "parent_id": location.parent_id,
+            "name": location.name,
+            "path": location.path,
+        }
+        for location in locations
+    ]

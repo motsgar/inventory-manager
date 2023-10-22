@@ -1,0 +1,122 @@
+{% extends "layout.html" %}
+{% from "macros.html" import popup_wrapper %}
+
+<!-- body -->
+
+{% block content%}
+
+<h1>{{ item_info.name }}</h1>
+
+<h3>Properties</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Property</th>
+            <th>Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for property in properties %}
+        <tr>
+            <td>{{ property.name }}</td>
+            <td>{{ property.value }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h3>Items</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Path</th>
+            <th>Count</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for location in locations %}
+        <tr>
+            <td><a href="/location/{{ location.path }}">{{ location.path }}</a></td>
+            <td>{{ location.count }}</td>
+            <td><button onclick="openEditPopup({{ location }})">Edit count</button></td>
+            <td><button onclick="openMovePopup({{ location }})">Move</button></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
+
+<!-- popups -->
+
+{% block popup %}
+
+{% call popup_wrapper("edit-item-count-popup", "Edit item count") %}
+<form id="item-edit-form" method="post" action="/item/1/1/?action=edit">
+    <label for="item-edit-count">Count:</label>
+    <input type="number" id="item-edit-count" name="count" value="1" min="0" required>
+    <br>
+    <button type="submit">Submit</button>
+</form>
+{% endcall %}
+
+{% call popup_wrapper("move-item-location-popup", "Move items") %}
+<form id="item-move-form" method="post" action="/item/1/1/?action=move">
+    <label for="item-move-location">Move location:</label>
+    <select name="location" id="item-move-location">
+    </select>
+    <br>
+    <label for="item-move-count">Count:</label>
+    <input type="number" id="item-move-count" name="count" value="1" min="1" max="1" required>
+    <br>
+    <button type="submit">Submit</button>
+</form>
+{% endcall %}
+
+{% endblock %}
+
+<!-- scripts -->
+
+{% block scripts %}
+<script>
+    let allLocations = null;
+
+    function openEditPopup(itemLocation) {
+        const locationEditFormElement = document.getElementById('item-edit-form');
+        const itemCountElement = document.getElementById('item-edit-count');
+
+        locationEditFormElement.setAttribute('action', `/item/{{ item_info.id }}/${itemLocation.id}/?action=edit`)
+
+        itemCountElement.value = itemLocation.count;
+
+        openPopup("edit-item-count-popup");
+    }
+
+    async function openMovePopup(itemLocation) {
+        if (allLocations === null) {
+            allLocations = await fetch(`/api/location/all`).then(res => res.json())
+        }
+
+        const locationEditFormElement = document.getElementById('item-move-form');
+        const itemLocationElement = document.getElementById('item-move-location');
+        const itemCountElement = document.getElementById('item-move-count');
+
+        locationEditFormElement.setAttribute('action', `/item/{{ item_info.id }}/${itemLocation.id}/?action=move`)
+
+        itemCountElement.value = Math.ceil(itemLocation.count / 2);
+        itemCountElement.setAttribute('max', itemLocation.count)
+
+        itemLocationElement.innerHTML = "";
+        for (const location of allLocations) {
+            if (location.path === itemLocation.path) continue;
+
+            const optionElement = document.createElement('option');
+            optionElement.value = location.id;
+            optionElement.innerText = location.path;
+            itemLocationElement.appendChild(optionElement);
+        }
+
+        openPopup("move-item-location-popup");
+    }
+</script>
+{% endblock %}

@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS location, category, category_property, item, item_count, item_property;
+DROP TABLE IF EXISTS location, category, category_property, item, item_location, item_property;
 
 CREATE TABLE location (
     id SERIAL PRIMARY KEY,
@@ -13,7 +13,7 @@ CREATE TABLE location (
 
 CREATE TABLE category (
     id SERIAL PRIMARY KEY,
-    parent_id INTEGER REFERENCES location,
+    parent_id INTEGER REFERENCES category,
     name TEXT NOT NULL,
 
     UNIQUE NULLS NOT DISTINCT (parent_id, name),
@@ -27,27 +27,33 @@ CREATE TABLE category_property (
     category_id INTEGER NOT NULL REFERENCES category,
     name TEXT NOT NULL,
 
-    UNIQUE NULLS NOT DISTINCT (category_id, name),
+    UNIQUE (category_id, name),
 
     CONSTRAINT no_empty_name CHECK (name <> '')
 );
 
 CREATE TABLE item (
     id SERIAL PRIMARY KEY,
-    category_id INTEGER REFERENCES category,
+    category_id INTEGER NOT NULL REFERENCES category,
     name TEXT NOT NULL
 );
 
 CREATE TABLE item_location (
     id SERIAL PRIMARY KEY,
-    location_id INTEGER NOT NULL,
+    item_id INTEGER NOT NULL REFERENCES item,
+    location_id INTEGER NOT NULL REFERENCES location,
     count INTEGER NOT NULL,
-    item_id INTEGER NOT NULL REFERENCES item
+
+    UNIQUE (location_id, item_id),
+
+    CONSTRAINT count_is_positive check (count >= 1)
 );
 
 CREATE TABLE item_property (
     id SERIAL PRIMARY KEY,
     item_id INTEGER NOT NULL REFERENCES item,
     category_property_id INTEGER NOT NULL REFERENCES category_property,
-    value TEXT NOT NULL
+    value TEXT NOT NULL,
+
+    UNIQUE (item_id, category_property_id)
 );
