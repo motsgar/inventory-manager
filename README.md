@@ -10,14 +10,19 @@ The application functionality is basically done. Only deletion of some items isn
 The UI is a basic html UI that doesn't yet have any fancy css. Even if the application visually isn't
 
 I had to drop the feature of item locations possibly being other items, as I didn't really manage
-my time well to implement any additional features. Something else to this category of features would
-be eg. ability to search and filter based on properties.
+my time well to implement any additional features. Other courses took more time than expected. Something else
+to this category of features would be eg. ability to search and filter based on properties. Some features
+took more time to implement that I originally thought. Eg. dynamic frontend ui for button popups.
+Also I had surprise problems with https redirects.
+
+I hope that it is ok, that the "finnishing touches" will be implemented on monday evening.
 
 ### Finalizations that would be done after the night of the official deadline
 
 -   Deletion of categories, locations and items (item instance / count deletion works)
 -   Cleaner UI
 -   Better error messages for invalid inputs
+-   Kind of related to the previous one, but fix python type hints complaining about stuff being None
 
 ## Features
 
