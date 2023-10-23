@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% from "macros.html" import popup_wrapper %}
+{% from "popup.html" import popup_wrapper %}
 
 <!-- body -->
 
@@ -9,10 +9,8 @@
 {% else %}
 
 <h2>Current path: /{{path | join('/')}}</h2>
-<h3>Location info</h3>
-<p>{{ location_info }}</p>
 <h3>Sublocations</h3>
-<button id="new-sublocation-button">Create new sublocation</button>
+<button onclick="createNewSublocation()">Create new sublocation</button>
 
 {% if path | length > 0 %}
 <a href="../">Go up a level</a>
@@ -26,10 +24,10 @@
 
 {% if items is not none %}
 <h3>Items</h3>
-<button id="new-item-button">Create new item</button>
+<button onclick="createNewItem()">Create new item</button>
 <ul>
     {% for item in items %}
-    <li><a href="/item/{{ item.id }}">{{ item.name }}</a></li>
+    <li><a href="/item/{{ item.item_id }}">{{ item.name }}</a></li>
     {% endfor %}
 </ul>
 {% endif %}
@@ -52,17 +50,14 @@
 
 {% call popup_wrapper("new-item-popup", "Create a new item") %}
 <form method="post" action="/item" id="new-item-form">
-    <input type="hidden" name="location" value="{{ path | join('/') }}">
+    <input type="hidden" name="location-id" value="{{ location_info.id }}">
 
-    <label for="item-name">Name of new item:</label>
-    <input type="text" id="item-name" name="name" required>
+    <label for="new-item-name">Name of new item:</label>
+    <input type="text" id="new-item-name" name="name" required>
     <br>
 
-    <label for="item-category">Category:</label>
-    <select id="item-category" name="category" required onchange="onCategoryChange()">
-        {% for category in categories %}
-        <option value="{{ category }}">{{ category }}</option>
-        {% endfor %}
+    <label for="new-item-category">Category:</label>
+    <select id="new-item-category" name="category-id" required onchange="onCategoryChange()">
     </select>
 
     <br>
@@ -84,26 +79,17 @@
 
 {% block scripts %}
 <script>
-    const newSublocationButton = document.getElementById("new-sublocation-button");
 
-    newSublocationButton.addEventListener("click", () => {
-        openPopup("new-sublocation-popup");
-    });
-
-    const newItemButton = document.getElementById("new-item-button");
-
-    newItemButton.addEventListener("click", () => {
-        openPopup("new-item-popup");
-    });
 
     let loadingCategories = false;
     let previousCategory = "";
+
     async function onCategoryChange() {
         if (loadingCategories) {
-            document.getElementById("item-category").value = previousCategory;
+            document.getElementById("new-item-category").value = previousCategory;
             return;
         }
-        const category = document.getElementById("item-category").value;
+        const category = document.getElementById("new-item-category").value;
         const properties = document.getElementById("category-properties");
         previousCategory = category;
         loadingCategories = true;
@@ -128,5 +114,26 @@
                 console.error(error);
             });
     }
+
+    function createNewSublocation() {
+        openPopup("new-sublocation-popup");
+    }
+
+    let allCategories = null;
+    async function createNewItem() {
+        const newItemCategoryElement = document.getElementById('new-item-category')
+        if (allCategories === null) {
+            allCategories = await fetch('/api/category/all').then(res => res.json())
+
+        }
+        newItemCategoryElement.innerHTML = '';
+        for (const category of allCategories) {
+            newItemCategoryElement.innerHTML += `<option value="${category.id}">${category.path}</option>`;
+        }
+
+        onCategoryChange();
+        openPopup('new-item-popup');
+    }
+
 </script>
 {% endblock %}

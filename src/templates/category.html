@@ -1,0 +1,201 @@
+{% extends "layout.html" %}
+{% from "popup.html" import popup_wrapper %}
+
+<!-- body -->
+
+{% block content%}
+{% if not_found %}
+<h1>Category not found</h1>
+{% else %}
+
+<h2>Current path: /{{path | join('/')}}</h2>
+{% if category_properties is not none %}
+<h3>Category properties</h3>
+<ul>
+    {% for property in category_properties %}
+    <li>{{ property }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+<h3>Subcategories</h3>
+<button onclick="createNewSubcategory()">Create new subcategory</button>
+
+{% if path | length > 0 %}
+<a href="../">Go up a level</a>
+{% endif %}
+
+<ul>
+    {% for subcategory in subcategories %}
+    <li><a href="{{ subcategory.name }}">{{ subcategory.name }}</a></li>
+    {% endfor %}
+</ul>
+
+{% if items is not none %}
+<h3>Items</h3>
+<button onclick="createNewItem()">Create new item</button>
+<ul>
+    {% for item in items %}
+    <li><a href="/item/{{ item.id }}">{{ item.name }} {{ item.total_count }}</a></li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% endif %}
+{% endblock %}
+
+
+<!-- popups -->
+
+{% block popup %}
+
+{% call popup_wrapper("new-subcategory-popup", "Create a new subcategory") %}
+<form method="post">
+    <label for="category-name">Name of new category:</label>
+    <input type="text" id="category-name" name="name" required>
+    <div id="category-properties" style="border: 1px solid black; padding: 10px;">
+        <div id="category-properties-list"></div>
+        <label for="category-name">Property name</label>
+        <input type="text" id="category-property-name-input">
+        <button onclick="addProperty(event)">Add property</button>
+    </div>
+
+    <button type="submit">Submit</button>
+</form>
+{% endcall %}
+
+{% call popup_wrapper("new-item-popup", "Create a new item") %}
+<form method="post" action="/item" id="new-item-form">
+    <input type="hidden" name="category-id" value="{{ category_info.id }}">
+
+    <label for="item-name">Name of new item:</label>
+    <input type="text" id="item-name" name="name" required>
+    <br>
+
+    <label for="new-item-location">location:</label>
+    <select name="location-id" id="new-item-location">
+    </select>
+    <br>
+
+    <br>
+    <div style="border: 1px solid black; padding: 10px;">
+        <p>Properties:</p>
+
+        <div id="category-properties">
+            {% if category_properties is not none %}
+            {% for property in category_properties %}
+            <label for="item-property-{{ property }}">{{ property }}:</label>
+            <input type="text" id="item-property-{{ property }}" name="property.{{ property }}" required>
+            <br>
+            {% endfor %}
+            {% endif %}
+
+        </div>
+    </div>
+    <label for="item-count">Count:</label>
+    <input type="number" id="item-count" name="count" value="1" min="1" required>
+    <br>
+    <button type="submit">Submit</button>
+</form>
+{% endcall %}
+
+{% endblock %}
+
+<!-- scripts -->
+
+{% block scripts %}
+<script>
+    let loadingCategories = false;
+    let previousCategory = "";
+    async function onCategoryChange() {
+        if (loadingCategories) {
+            document.getElementById("item-category").value = previousCategory;
+            return;
+        }
+        const category = document.getElementById("item-category").value;
+        const properties = document.getElementById("category-properties");
+        previousCategory = category;
+        loadingCategories = true;
+
+        properties.innerHTML = "Loading properties...";
+
+        await fetch(`/api/category/properties/${category}`)
+            .then(response => response.json())
+            .then(data => {
+                properties.innerHTML = "";
+                for (const property of data) {
+                    properties.innerHTML += `
+                        <label for="item-property-${property}">${property}:</label>
+                        <input type="text" id="item-property-${property}" name="property.${property}" required>
+                        <br>
+                    `;
+                }
+                loadingCategories = false;
+            }).catch(error => {
+                properties.innerHTML = "Error loading properties";
+                loadingCategories = false;
+                console.error(error);
+            });
+    }
+
+    const newCategoryPropertyListElement = document.getElementById('category-properties-list')
+
+    let newCategoryProperties = [];
+
+    function updateNewCategoryPropertyList() {
+        newCategoryPropertyListElement.innerHTML = '';
+        for (const propertyName of newCategoryProperties) {
+            const propertyWrapper = document.createElement("div")
+            const propertyElement = document.createElement("div");
+            const propertyFormElement = document.createElement("input");
+
+            propertyElement.textContent = propertyName;
+            propertyFormElement.setAttribute('type', 'hidden');
+            propertyFormElement.setAttribute('name', 'category-property-name');
+            propertyFormElement.setAttribute('value', propertyName);
+
+            propertyWrapper.appendChild(propertyElement)
+            propertyWrapper.appendChild(propertyFormElement)
+            newCategoryPropertyListElement.appendChild(propertyWrapper);
+        }
+    }
+
+    function addProperty(e) {
+        e.preventDefault();
+        const propertyNameElement = document.getElementById('category-property-name-input');
+
+        if (propertyNameElement.value === '') {
+            alert('Property name can\'t be empty');
+            return;
+        };
+        if (newCategoryProperties.includes(propertyNameElement.value)) {
+            alert('Property name already exists')
+            return;
+        }
+
+        newCategoryProperties.push(propertyNameElement.value);
+        updateNewCategoryPropertyList();
+        propertyNameElement.value = '';
+    }
+
+    function createNewSubcategory() {
+        newCategoryProperties = [];
+        updateNewCategoryPropertyList();
+        openPopup('new-subcategory-popup')
+    }
+
+    let allLocations = null;
+    async function createNewItem() {
+        const newItemLocationElement = document.getElementById('new-item-location')
+        if (allLocations === null) {
+            allLocations = await fetch('/api/location/all').then(res => res.json())
+
+        }
+        newItemLocationElement.innerHTML = '';
+        for (const location of allLocations) {
+            newItemLocationElement.innerHTML += `<option value="${location.id}">${location.path}</option>`;
+        }
+
+        openPopup('new-item-popup');
+    }
+</script>
+{% endblock %}

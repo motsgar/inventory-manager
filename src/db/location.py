@@ -75,7 +75,7 @@ def get_all_locations():
                     FROM location, location_hierarchy
                     WHERE location.parent_id = location_hierarchy.id
                 )
-                SELECT id, name, path, parent_id FROM location_hierarchy
+                SELECT id, name, path, parent_id FROM location_hierarchy;
             """
         )
     ).fetchall()

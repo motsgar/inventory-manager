@@ -1,6 +1,7 @@
 from flask import Blueprint, abort, redirect, render_template, request
 
 from db.item import (
+    add_items,
     create_item_and_location,
     edit_item_location_count,
     get_item_info,
@@ -14,9 +15,11 @@ item_bp = Blueprint("item", __name__, url_prefix="/item")
 
 @item_bp.route("/<int:item_id>/")
 def item(item_id):
+    item_info = get_item_info(item_id)
+    if item_info is None:
+        abort(404)
     locations = get_item_locations(item_id)
     properties = get_item_properties(item_id)
-    item_info = get_item_info(item_id)
 
     return render_template(
         "item.html",
@@ -24,6 +27,21 @@ def item(item_id):
         properties=properties,
         item_info=item_info,
     )
+
+
+@item_bp.route("/<int:item_id>/", methods=["POST"])
+def item_new(item_id):
+    count_str = request.form.get("count")
+    location_str = request.form.get("location")
+    if count_str is None or location_str is None:
+        abort(404)
+
+    count = int(count_str)
+    new_location_id = int(location_str)
+
+    add_items(item_id, new_location_id, count)
+
+    return redirect(request.referrer)
 
 
 @item_bp.route("/<int:item_id>/<int:item_location_id>/", methods=["POST"])
@@ -62,8 +80,8 @@ def new_item():
     create_item_and_location(
         request.form["name"],
         properties,
-        request.form["category"],
-        request.form["location"],
+        request.form["category-id"],
+        request.form["location-id"],
         request.form["count"],
     )
     return redirect(request.referrer)
