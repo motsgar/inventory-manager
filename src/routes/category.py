@@ -34,7 +34,7 @@ def get_categories():
 
 @category_bp.route("/", defaults={"raw_path": ""})
 @category_bp.route("/<path:raw_path>/")
-def location(raw_path):
+def category(raw_path):
     path = parse_path(raw_path)
 
     if len(path) == 0:
@@ -62,7 +62,7 @@ def location(raw_path):
 
 @category_bp.route("/", defaults={"raw_path": ""}, methods=["POST"])
 @category_bp.route("/<path:raw_path>/", methods=["POST"])
-def new_location(raw_path):
+def new_category(raw_path):
     path = parse_path(raw_path)
 
     if len(path) == 0:
