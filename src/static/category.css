@@ -1,0 +1,45 @@
+#popup-list-input {
+	width: 100%;
+}
+
+#input-button,
+#category-properties-list > div {
+	display: flex;
+	width: 100%;
+	height: 40px;
+	margin-top: 10px;
+}
+
+#category-properties-list > div > div,
+#input-button input {
+	flex: 1;
+	font-size: 16px;
+	padding: 10px;
+	box-sizing: border-box;
+	background-color: #464449;
+}
+
+#input-button input {
+	outline: 0;
+	border: 0;
+}
+
+#category-properties-list > div > button,
+#input-button button {
+	width: 40px;
+	height: 40px;
+	border: none;
+	background-color: #ff6600;
+	cursor: pointer;
+	font-size: 20px;
+}
+
+#category-properties-list > div > button {
+	background-color: #c91414;
+}
+
+#category-properties-list {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+}

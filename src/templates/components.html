@@ -1,14 +1,14 @@
-{% macro breadcrumbs(rootPath, rootName, path) %}
+{% macro breadcrumbs(root_path, root_name, path) %}
 <div class="breadcrumbs">
-    <a href="{{ rootPath }}/">{{ rootName }}</a>
-    {% set partialPath = namespace(path='') %}
+    <a href="{{ root_path }}/">{{ root_name }}</a>
+    {% set partial_path = namespace(path='') %}
     {% for location in path %}
-    {% set partialPath.path = partialPath.path + '/' + location %}
+    {% set partial_path.path = partial_path.path + '/' + location %}
     <span class="breadcrumb-separator">/</span>
     {% if loop.last %}
-    <a href="{{ rootPath }}{{ partialPath.path }}" class="current">{{ location }}</a>
+    <a href="{{ root_path }}{{ partial_path.path }}" class="current">{{ location }}</a>
     {% else %}
-    <a href="{{ rootPath }}{{ partialPath.path }}">{{ location }}</a>
+    <a href="{{ root_path }}{{ partial_path.path }}">{{ location }}</a>
     {% endif %}
     {% endfor %}
 </div>

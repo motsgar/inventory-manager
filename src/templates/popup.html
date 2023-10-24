@@ -1,11 +1,14 @@
-{% macro popup_wrapper(popup_id, title, close_text='Close') %}
+{% macro popup_wrapper(popup_id, title, form_action='', form_id='', submit_text='submit') %}
 <div id="{{ popup_id }}" class="popup-wrapper">
     <div class="popup">
         <h2>{{ title }}</h2>
-        <div class="popup-content">
-            {{ caller() }}
-        </div>
-        <button id="{{ popup_id }}-close-button">{{ close_text }}</button>
+        <button class="popup-close-button" id="{{ popup_id }}-close-button"><span>&times;</span></button>
+        <form method="post" action="{{ form_action }}" id="{{ form_id }}">
+            <div class="popup-content popup-gap">
+                {{ caller() }}
+            </div>
+            <button type="submit" class="popup-submit-button">{{ submit_text }}</button>
+        </form>
     </div>
     <div class="popup-overlay"></div>
 </div>
@@ -22,9 +25,42 @@
 
         const onClose = () => {
             popupCloseButton.removeEventListener('click', onClose);
+            popupCloseButton.removeEventListener('keydown', handleMaybeEsc);
             popupElement.style.display = "none";
         };
+
+        const handleMaybeEsc = (e) => {
+            if (e.code === 'Escape') {
+                popupCloseButton.removeEventListener('click', onClose);
+                popupCloseButton.removeEventListener('keydown', handleMaybeEsc);
+                popupElement.style.display = "none";
+            }
+        }
+
         popupCloseButton.addEventListener('click', onClose);
+        document.addEventListener('keydown', handleMaybeEsc)
     }
 </script>
+{% endmacro %}
+
+{% macro popup_text_input(input_id, input_name, input_label) %}
+<div class="popup-input popup-text-input">
+    <label for="{{ input_id }}">{{ input_label }}</label>
+    <input type="text" id="{{ input_id }}" name="{{ input_name }}" required>
+</div>
+{% endmacro %}
+
+{% macro popup_number_input(input_id, input_name, input_label, minimum) %}
+<div class="popup-input popup-number-input">
+    <label for="{{ input_id }}">{{ input_label }}</label>
+    <input type="number" id="{{ input_id }}" name="{{ input_name }}" value="1" min="{{ minimum }}" required>
+</div>
+{% endmacro %}
+
+{% macro popup_dropdown(input_id, input_name, input_label) %}
+<div class="popup-input popup-dropdown">
+    <label for="{{ input_id }}">{{ input_label }}</label>
+    <select id="{{ input_id }}" name="{{ input_name }}">
+    </select>
+</div>
 {% endmacro %}

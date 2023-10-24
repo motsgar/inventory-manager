@@ -1,3 +1,9 @@
+hr {
+    width: 100%;
+    border: none;
+    border-bottom: 2px solid #ddd;
+}
+
 
 /* Breadcrumbs */
 
@@ -45,7 +51,7 @@
 }
 
 .item-list thead tr {
-    border-bottom: #ff6600 solid 2px;
+    border-bottom: 2px solid #ff6600;
 }
 
 .item-list tbody tr:nth-child(even) {

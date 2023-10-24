@@ -1,8 +1,23 @@
+/* site styles */
+
 body {
     margin: 0;
     background-color: #302e33;
 }
 
+#site-body {
+    height: 200vh;
+    margin: 0px 20px;
+    margin-top: 52px;
+}
+
+#site-block {
+    max-width: 600px;
+    margin: auto;
+    padding-top: 10px;
+}
+
+/* navbar */
 nav {
     width: 100vw;
     background-color: #3d3d3d;
@@ -40,16 +55,4 @@ nav>ul>li>a {
 nav>ul>li>a:hover {
     background-color: #555;
     color: #ff944c;
-}
-
-#site-body {
-    height: 200vh;
-    margin: 0px 20px;
-    margin-top: 52px;
-}
-
-#site-block {
-    max-width: 600px;
-    margin: auto;
-    padding-top: 10px;
 }

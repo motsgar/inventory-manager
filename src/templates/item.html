@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% from "popup.html" import popup_wrapper %}
+{% from "popup.html" import popup_wrapper, popup_text_input, popup_number_input, popup_dropdown %}
 
 <!-- body -->
 
@@ -52,39 +52,28 @@
 
 {% block popup %}
 
-{% call popup_wrapper("add-item-popup", "Add item") %}
-<form id="item-add-form" method="post" action="/item/{{ item_info.id }}/">
-    <label for="item-add-location">Location:</label>
-    <select name="location" id="item-add-location">
-    </select>
-    <br>
-    <label for="item-add-count">Count:</label>
-    <input type="number" id="item-add-count" name="count" value="1" min="1" required>
-    <br>
-    <button type="submit">Submit</button>
-</form>
+{% call popup_wrapper("add-item-popup", "Add item", "/item/{{ item_info.id }}/", "item-add-form") %}
+<label for="item-add-location">Location</label>
+<select name="location" id="item-add-location">
+</select>
+
+<label for="item-add-count">Count</label>
+<input type="number" id="item-add-count" name="count" value="1" min="1" required>
 {% endcall %}
 
-{% call popup_wrapper("edit-item-count-popup", "Edit item count") %}
-<form id="item-edit-form" method="post" action="/item/1/1/?action=edit">
-    <label for="item-edit-count">Count:</label>
-    <input type="number" id="item-edit-count" name="count" value="1" min="0" required>
-    <br>
-    <button type="submit">Submit</button>
-</form>
+{% call popup_wrapper("edit-item-count-popup", "Edit item count", "/item/1/1/?action=edit", "item-edit-form") %}
+<label for="item-edit-count">Count</label>
+
+<input type="number" id="item-edit-count" name="count" value="1" min="0" required>
 {% endcall %}
 
-{% call popup_wrapper("move-item-location-popup", "Move items") %}
-<form id="item-move-form" method="post" action="/item/1/1/?action=move">
-    <label for="item-move-location">Move location:</label>
-    <select name="location" id="item-move-location">
-    </select>
-    <br>
-    <label for="item-move-count">Count:</label>
-    <input type="number" id="item-move-count" name="count" value="1" min="1" max="1" required>
-    <br>
-    <button type="submit">Submit</button>
-</form>
+{% call popup_wrapper("move-item-location-popup", "Move items", "/item/1/1/?action=move", "item-move-form") %}
+<label for="item-move-location">Move location</label>
+<select name="location" id="item-move-location">
+</select>
+
+<label for="item-move-count">Count</label>
+<input type="number" id="item-move-count" name="count" value="1" min="1" max="1" required>
 {% endcall %}
 
 {% endblock %}
