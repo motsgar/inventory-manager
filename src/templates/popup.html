@@ -1,8 +1,10 @@
 {% macro popup_wrapper(popup_id, title, form_action='', form_id='', submit_text='submit') %}
 <div id="{{ popup_id }}" class="popup-wrapper">
     <div class="popup">
-        <h2>{{ title }}</h2>
-        <button class="popup-close-button" id="{{ popup_id }}-close-button"><span>&times;</span></button>
+        <div class="popup-header">
+            <h2>{{ title }}</h2>
+            <button class="popup-close-button" id="{{ popup_id }}-close-button"><span>&times;</span></button>
+        </div>
         <form method="post" action="{{ form_action }}" id="{{ form_id }}">
             <div class="popup-content popup-gap">
                 {{ caller() }}

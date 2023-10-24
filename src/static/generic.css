@@ -7,13 +7,12 @@ hr {
 /* Breadcrumbs */
 
 .breadcrumbs {
-	padding: 10px;
+	padding: 10px 4px;
 	display: flex;
 	flex-wrap: wrap;
 	gap: 6px;
 	align-items: flex-start;
 	justify-content: center;
-	padding-left: 4px;
 }
 
 .breadcrumbs a {
@@ -35,10 +34,14 @@ hr {
 
 /* Item table */
 
+.table-scroll-container {
+	overflow-x: auto;
+	margin: 10px 0;
+}
+
 .item-list {
 	width: 100%;
 	border-collapse: collapse;
-	margin: 10px 0;
 	background-color: #3d3d3d;
 }
 
@@ -60,7 +63,7 @@ hr {
 	background-color: #484848;
 }
 
-.item-list tbody tr:hover {
+.item-list tr.table-hover-effect:hover {
 	background-color: #555;
 }
 
@@ -81,6 +84,7 @@ hr {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	gap: 8px;
 }
 
 .table-section-header h2 {

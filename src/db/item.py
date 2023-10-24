@@ -233,10 +233,28 @@ def get_items_in_location(location_id: int):
     return db.session.execute(
         text(
             """
-                SELECT ii.id AS id, i.id AS item_id, i.category_id as category_id, i.name AS name,
-                    ii.location_id AS location_id, ii.count AS count
+                WITH RECURSIVE category_hierarchy AS (
+                    SELECT id, parent_id, name, CAST(name AS text) AS path
+                    FROM category
+                    WHERE parent_id IS NULL
+                    UNION ALL
+                    SELECT category.id, category.parent_id, category.name, category_hierarchy.path || '/' || category.name
+                    FROM category, category_hierarchy
+                    WHERE category.parent_id = category_hierarchy.id
+                )
+                SELECT
+                    ii.id AS id,
+                    i.id AS item_id,
+                    i.category_id AS category_id,
+                    c.name AS category_name,
+                    i.name AS item_name,
+                    ii.location_id AS location_id,
+                    ii.count AS count,
+                    ch.path AS category_path
                 FROM item_location ii
                 JOIN item i ON ii.item_id = i.id
+                JOIN category c ON i.category_id = c.id
+                JOIN category_hierarchy ch ON c.id = ch.id
                 WHERE ii.location_id = :location_id;
             """
         ),

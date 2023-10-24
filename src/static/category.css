@@ -1,3 +1,4 @@
+/* new subcategory */
 #popup-list-input {
 	width: 100%;
 }
@@ -22,6 +23,7 @@
 #input-button input {
 	outline: 0;
 	border: 0;
+	width: 100px; /* works as a min width and allows the element to shrink to max 100px */
 }
 
 #category-properties-list > div > button,
@@ -43,3 +45,5 @@
 	flex-direction: column;
 	align-items: flex-start;
 }
+
+/* category property list */

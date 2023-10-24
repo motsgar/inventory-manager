@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% from "popup.html" import popup_wrapper, popup_text_input, popup_number_input, popup_dropdown %}
-{% from "components.html" import folder_table %}
+{% from "components.html" import folder_table, simple_table %}
 
 {% block head %}
 <link rel="stylesheet" href="/static/category.css" />
@@ -21,45 +21,45 @@ subcategories,
 path) }}
 
 {% if category_properties is not none %}
-<h3>Category properties</h3>
-<ul>
+{% if category_properties %}
+{% call simple_table("Category properties", "Edit properties", "editCategoryProperties()") %}
+<tbody>
     {% for property in category_properties %}
-    <li>{{ property }}</li>
+    <tr>
+        <td style="padding: 10px;">{{ property }}</td>
+    </tr>
     {% endfor %}
-</ul>
+</tbody>
+{% endcall %}
+{% else %}
+<h2>Category has no properties</h2>
+{% endif %}
 {% endif %}
 
 
 {% if items is not none %}
-<div class="table-section">
-    <div class="table-section-header">
-        <h2>Items</h2>
-        <button onclick="createNewItem()">Create new item</button>
-    </div>
-    <table class="item-list">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Count</th>
-                {% for property in category_properties %}
-                <th>{{ property }}</th>
-                {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in items %}
-            <tr>
-                <td><a href="/item/{{ item.id }}">{{ item.name }}</a></td>
-                <td><a href="/item/{{ item.id }}">{{ item.total_count }}</a></td>
-                {% for property in item.properties %}
-                <td><a href="/item/{{ item.id }}">{{ property }}</a></td>
-                {% endfor %}
-            </tr>
-            </a>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+{% call simple_table("Items", "Create new item", "createNewItem()") %}
+<thead>
+    <tr>
+        <th>Name</th>
+        <th>Count</th>
+        {% for property in category_properties %}
+        <th>{{ property }}</th>
+        {% endfor %}
+    </tr>
+</thead>
+<tbody>
+    {% for item in items %}
+    <tr class="table-hover-effect">
+        <td><a href="/item/{{ item.id }}">{{ item.name }}</a></td>
+        <td><a href="/item/{{ item.id }}">{{ item.total_count }}</a></td>
+        {% for property in item.properties %}
+        <td><a href="/item/{{ item.id }}">{{ property }}</a></td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</tbody>
+{% endcall %}
 {% endif %}
 
 {% endif %}

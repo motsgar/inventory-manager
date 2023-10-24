@@ -14,44 +14,60 @@
 </div>
 {% endmacro %}
 
+{% macro simple_table(section_name, section_action, section_action_function) %}
+<div class="table-section">
+    <div class="table-section-header">
+        <h2>{{ section_name }}</h2>
+        <button onclick="{{ section_action_function }}">{{ section_action }}</button>
+    </div>
+    <div class="table-scroll-container">
+        <table class="item-list">
+            {{ caller() }}
+        </table>
+    </div>
+</div>
+{% endmacro %}
+
+{% macro down_arrow() %}
+<svg class="path-arrow" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
+    <path d="M9.7 5.3L6 9 2.3 5.3a1 1 0 011.4-1.4L6 6.6l2.3-2.3a1 1 0 011.4 1.4z" />
+</svg>
+{% endmacro %}
+
 {% macro folder_table(subfolders, action_name, action_function, root_path, path) %}
 <div class="table-section">
     <div class="table-section-header">
         {{ breadcrumbs(root_path, path) }}
         <button onclick="{{ action_function }}">{{ action_name }}</button>
     </div>
-    <table class="item-list">
-        <thead>
-            {% if path | length > 0 %}
-            <tr class="previous-folder">
-                <td>
-                    <a href="../">
-                        <svg class="path-arrow" xmlns="http://www.w3.org/2000/svg" width="12" height="12"
-                            viewBox="0 0 12 12">
-                            <path d="M9.7 5.3L6 9 2.3 5.3a1 1 0 011.4-1.4L6 6.6l2.3-2.3a1 1 0 011.4 1.4z" />
-                        </svg>
-                        Go back
-                    </a>
-                </td>
-            </tr>
-            {% endif %}
-        </thead>
-        <tbody>
-            {% for folder in subfolders %}
-            <tr>
-                <td>
-                    <a class="folder-column-link" href="{{ folder.name }}">
-                        {{ folder.name }}
-                        <svg class="path-arrow" xmlns="http://www.w3.org/2000/svg" width="12" height="12"
-                            viewBox="0 0 12 12">
-                            <path d="M9.7 5.3L6 9 2.3 5.3a1 1 0 011.4-1.4L6 6.6l2.3-2.3a1 1 0 011.4 1.4z" />
-                        </svg>
-                    </a>
+    <div class="table-scroll-container">
+        <table class="item-list">
+            <thead>
+                {% if path | length > 0 %}
+                <tr class="previous-folder table-hover-effect">
+                    <td>
+                        <a href="../">
+                            {{ down_arrow() }}
+                            Go back
+                        </a>
+                    </td>
+                </tr>
+                {% endif %}
+            </thead>
+            <tbody>
+                {% for folder in subfolders %}
+                <tr class="table-hover-effect">
+                    <td>
+                        <a class="folder-column-link" href="{{ folder.name }}">
+                            {{ folder.name }}
+                            {{ down_arrow() }}
+                        </a>
 
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endmacro %}

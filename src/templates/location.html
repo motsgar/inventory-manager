@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% from "popup.html" import popup_wrapper, popup_text_input, popup_number_input, popup_dropdown %}
-{% from "components.html" import folder_table %}
+{% from "components.html" import folder_table, simple_table %}
 
 
 <!-- body -->
@@ -18,13 +18,24 @@ sublocations,
 path) }}
 
 {% if items is not none %}
-<h3>Items</h3>
-<button onclick="createNewItem()">Create new item</button>
-<ul>
+{% call simple_table("Items", "Create new item", "createNewItem()") %}
+<thead>
+    <tr>
+        <th>Name</th>
+        <th>Count</th>
+        <th>Category</th>
+    </tr>
+</thead>
+<tbody>
     {% for item in items %}
-    <li><a href="/item/{{ item.item_id }}">{{ item.name }}</a></li>
+    <tr class="table-hover-effect">
+        <td><a href="/item/{{ item.item_id }}">{{ item.item_name }}</a></td>
+        <td><a href="/item/{{ item.item_id }}">{{ item.count }}</a></td>
+        <td><a href="/item/{{ item.item_id }}">{{ item.category_path }}</a></td>
+    </tr>
     {% endfor %}
-</ul>
+</tbody>
+{% endcall %}
 {% endif %}
 
 {% endif %}
@@ -36,28 +47,25 @@ path) }}
 {% block popup %}
 
 {% call popup_wrapper("new-sublocation-popup", "Create a new sublocation") %}
-<label for="location-name">Name of new location</label>
-<input type="text" id="location-name" name="name" required>
+{{ popup_text_input("location-name", "name", "Name of new location") }}
 {% endcall %}
 
 {% call popup_wrapper("new-item-popup", "Create a new item", "/item") %}
 <input type="hidden" name="location-id" value="{{ location_info.id }}">
 
-<label for="new-item-name">Name of new item</label>
-<input type="text" id="new-item-name" name="name" required>
+{{ popup_text_input("new-item-name", "name", "Name of new item") }}
+{{ popup_dropdown("new-item-category", "category-id", "Category") }}
+{{ popup_number_input("item-count", "count", "Count", "1") }}
 
-<label for="new-item-category">Category</label>
-<select id="new-item-category" name="category-id" required onchange="onCategoryChange()">
-</select>
+<hr>
 
-<div style="border: 1px solid black; padding: 10px;">
-    <p>Properties:</p>
-
-    <div id="category-properties"></div>
+<div id="custom-properties-exist">
+    <h3>Custom properties</h3>
+    <div class="popup-input popup-gap" id="category-properties"></div>
 </div>
-
-<label for="item-count">Count</label>
-<input type="number" id="item-count" name="count" value="1" min="1" required>
+<div id="custom-properties-dont-exist" style="display: none;">
+    <p>No custom properties exist for the specified category</p>
+</div>
 {% endcall %}
 
 {% endblock %}
@@ -66,10 +74,33 @@ path) }}
 
 {% block scripts %}
 <script>
-
-
     let loadingCategories = false;
     let previousCategory = "";
+
+    document.getElementById('new-item-category').addEventListener('change', onCategoryChange);
+
+    function createTextInput(inputId, inputName, inputLabel) {
+        const container = document.createElement("div");
+        container.classList.add("popup-input", "popup-text-input");
+
+        const label = document.createElement("label");
+        label.setAttribute("for", inputId);
+        label.appendChild(document.createTextNode(inputLabel));
+
+        const input = document.createElement("input");
+        input.setAttribute("type", "text");
+        input.setAttribute("id", inputId);
+        input.setAttribute("name", inputName);
+        input.setAttribute("required", "true");
+
+        container.appendChild(label);
+        container.appendChild(input);
+
+        return container;
+    }
+
+    const customPropertiesExistElement = document.getElementById('custom-properties-exist');
+    const customPropertiesDontExistElement = document.getElementById('custom-properties-dont-exist');
 
     async function onCategoryChange() {
         if (loadingCategories) {
@@ -81,22 +112,28 @@ path) }}
         previousCategory = category;
         loadingCategories = true;
 
-        properties.innerHTML = "Loading properties...";
+        customPropertiesExistElement.style.display = 'block';
+        customPropertiesDontExistElement.style.display = 'none';
+        properties.innerHTML = "<p>Loading properties...</p>";
 
         await fetch(`/api/category/properties/${category}`)
             .then(response => response.json())
             .then(data => {
+                if (data.length === 0) {
+                    customPropertiesExistElement.style.display = 'none';
+                    customPropertiesDontExistElement.style.display = 'block';
+                } else {
+                    customPropertiesExistElement.style.display = 'block';
+                    customPropertiesDontExistElement.style.display = 'none';
+                }
                 properties.innerHTML = "";
                 for (const property of data) {
-                    properties.innerHTML += `
-                        <label for="item-property-${property}">${property}</label>
-                        <input type="text" id="item-property-${property}" name="property.${property}" required>
-                        <br>
-                    `;
+                    const inputElement = createTextInput(`item-property-${property}`, `property.${property}`, property);
+                    properties.appendChild(inputElement);
                 }
                 loadingCategories = false;
             }).catch(error => {
-                properties.innerHTML = "Error loading properties";
+                properties.innerHTML = "<p>Error loading properties</p>";
                 loadingCategories = false;
                 console.error(error);
             });
