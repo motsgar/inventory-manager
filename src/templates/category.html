@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% from "popup.html" import popup_wrapper %}
+{% from "components.html" import breadcrumbs %}
 
 <!-- body -->
 
@@ -8,7 +9,8 @@
 <h1>Category not found</h1>
 {% else %}
 
-<h2>Current path: /{{path | join('/')}}</h2>
+{{ breadcrumbs('/category', 'Category', path) }}
+
 {% if category_properties is not none %}
 <h3>Category properties</h3>
 <ul>
@@ -31,13 +33,36 @@
 </ul>
 
 {% if items is not none %}
-<h3>Items</h3>
-<button onclick="createNewItem()">Create new item</button>
-<ul>
-    {% for item in items %}
-    <li><a href="/item/{{ item.id }}">{{ item.name }} {{ item.total_count }}</a></li>
-    {% endfor %}
-</ul>
+<div class="table-section">
+    <div class="table-section-header">
+        <h2>Items</h2>
+        <button onclick="createNewItem()" class="flat-button">Create new item</button>
+    </div>
+    <table class="item-list">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Count</th>
+                {% for property in category_properties %}
+                <th>{{ property }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+
+            <tr>
+                <td><a href="/item/{{ item.id }}">{{ item.name }}</a></td>
+                <td><a href="/item/{{ item.id }}">{{ item.total_count }}</a></td>
+                {% for property in item.properties %}
+                <td><a href="/item/{{ item.id }}">{{ property }}</a></td>
+                {% endfor %}
+            </tr>
+            </a>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endif %}
 
 {% endif %}

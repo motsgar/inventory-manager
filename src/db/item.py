@@ -245,10 +245,10 @@ def get_items_in_location(location_id: int):
 
 
 def get_items_in_category(category_id: int):
-    return db.session.execute(
+    items_result = db.session.execute(
         text(
             """
-                SELECT item.id, item.name, COALESCE(SUM(item_location.count), 0) AS total_count
+                SELECT item.id AS id, item.name AS name, COALESCE(SUM(item_location.count), 0) AS total_count
                 FROM item
                 LEFT JOIN item_location ON item.id = item_location.item_id
                 WHERE item.category_id = :category_id
@@ -257,3 +257,24 @@ def get_items_in_category(category_id: int):
         ),
         {"category_id": category_id},
     ).fetchall()
+
+    items_with_properties = []
+    for item in items_result:
+        properties_result = db.session.execute(
+            text(
+                """
+                    SELECT value
+                    FROM item_property
+                    WHERE item_id = :item_id;
+                """
+            ),
+            {"item_id": item.id},
+        ).fetchall()
+
+        item_properties = [property.value for property in properties_result]
+        print(item)
+        item = {"id": item.id, "name": item.name, "total_count": item.total_count}
+        item["properties"] = item_properties
+        items_with_properties.append(item)
+
+    return items_with_properties

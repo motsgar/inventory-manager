@@ -1,14 +1,21 @@
 {% extends "layout.html" %}
 {% from "popup.html" import popup_wrapper %}
+{% from "components.html" import breadcrumbs %}
+
+
+{% block head %}
+<link rel="stylesheet" href="/static/location.css" />
+{% endblock %}
 
 <!-- body -->
 
-{% block content%}
+{% block content %}
 {% if not_found %}
 <h1>Location not found</h1>
 {% else %}
 
-<h2>Current path: /{{path | join('/')}}</h2>
+{{ breadcrumbs('/location', 'Location', path) }}
+
 <h3>Sublocations</h3>
 <button onclick="createNewSublocation()">Create new sublocation</button>
 
