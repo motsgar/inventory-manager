@@ -1,15 +1,57 @@
-{% macro breadcrumbs(root_path, root_name, path) %}
+{% macro breadcrumbs(root_path, path) %}
 <div class="breadcrumbs">
-    <a href="{{ root_path }}/">{{ root_name }}</a>
+    <a href="{{ root_path }}" class="breadcrumb-separator">/</a>
     {% set partial_path = namespace(path='') %}
     {% for location in path %}
     {% set partial_path.path = partial_path.path + '/' + location %}
-    <span class="breadcrumb-separator">/</span>
     {% if loop.last %}
     <a href="{{ root_path }}{{ partial_path.path }}" class="current">{{ location }}</a>
     {% else %}
     <a href="{{ root_path }}{{ partial_path.path }}">{{ location }}</a>
+    <span class="breadcrumb-separator" style="user-select: none;">/</span>
     {% endif %}
     {% endfor %}
+</div>
+{% endmacro %}
+
+{% macro folder_table(subfolders, action_name, action_function, root_path, path) %}
+<div class="table-section">
+    <div class="table-section-header">
+        {{ breadcrumbs(root_path, path) }}
+        <button onclick="{{ action_function }}">{{ action_name }}</button>
+    </div>
+    <table class="item-list">
+        <thead>
+            {% if path | length > 0 %}
+            <tr class="previous-folder">
+                <td>
+                    <a href="../">
+                        <svg class="path-arrow" xmlns="http://www.w3.org/2000/svg" width="12" height="12"
+                            viewBox="0 0 12 12">
+                            <path d="M9.7 5.3L6 9 2.3 5.3a1 1 0 011.4-1.4L6 6.6l2.3-2.3a1 1 0 011.4 1.4z" />
+                        </svg>
+                        Go back
+                    </a>
+                </td>
+            </tr>
+            {% endif %}
+        </thead>
+        <tbody>
+            {% for folder in subfolders %}
+            <tr>
+                <td>
+                    <a class="folder-column-link" href="{{ folder.name }}">
+                        {{ folder.name }}
+                        <svg class="path-arrow" xmlns="http://www.w3.org/2000/svg" width="12" height="12"
+                            viewBox="0 0 12 12">
+                            <path d="M9.7 5.3L6 9 2.3 5.3a1 1 0 011.4-1.4L6 6.6l2.3-2.3a1 1 0 011.4 1.4z" />
+                        </svg>
+                    </a>
+
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endmacro %}

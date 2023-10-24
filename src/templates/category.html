@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% from "popup.html" import popup_wrapper, popup_text_input, popup_number_input, popup_dropdown %}
-{% from "components.html" import breadcrumbs %}
+{% from "components.html" import folder_table %}
 
 {% block head %}
 <link rel="stylesheet" href="/static/category.css" />
@@ -13,7 +13,12 @@
 <h1>Category not found</h1>
 {% else %}
 
-{{ breadcrumbs('/category', 'Category', path) }}
+{{ folder_table(
+subcategories,
+"Create new subcategory",
+"createNewSubcategory()",
+'/category',
+path) }}
 
 {% if category_properties is not none %}
 <h3>Category properties</h3>
@@ -23,30 +28,6 @@
     {% endfor %}
 </ul>
 {% endif %}
-<div class="table-section">
-    <div class="table-section-header">
-        <h2>Subcategories</h2>
-        {% if path | length > 0 %}
-        <a href="../">Go up a level</a>
-        {% endif %}
-        <button onclick="createNewSubcategory()">Create new subcategory</button>
-    </div>
-    <table class="item-list">
-        <tbody>
-            {% for subcategory in subcategories %}
-            <tr>
-                <td><a href="{{ subcategory.name }}">{{ subcategory.name }}</a></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <ul>
-        {% for subcategory in subcategories %}
-        <li><a href="{{ subcategory.name }}">{{ subcategory.name }}</a></li>
-        {% endfor %}
-    </ul>
-</div>
-
 
 
 {% if items is not none %}

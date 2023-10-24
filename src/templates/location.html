@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% from "popup.html" import popup_wrapper, popup_text_input, popup_number_input, popup_dropdown %}
-{% from "components.html" import breadcrumbs %}
+{% from "components.html" import folder_table %}
 
 
 <!-- body -->
@@ -10,20 +10,12 @@
 <h1>Location not found</h1>
 {% else %}
 
-{{ breadcrumbs('/location', 'Location', path) }}
-
-<h3>Sublocations</h3>
-<button onclick="createNewSublocation()">Create new sublocation</button>
-
-{% if path | length > 0 %}
-<a href="../">Go up a level</a>
-{% endif %}
-
-<ul>
-    {% for sublocation in sublocations %}
-    <li><a href="{{ sublocation.name }}">{{ sublocation.name }}</a></li>
-    {% endfor %}
-</ul>
+{{ folder_table(
+sublocations,
+"Create new sublocation",
+"createNewSublocation()",
+'/location',
+path) }}
 
 {% if items is not none %}
 <h3>Items</h3>
