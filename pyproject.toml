@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "inventory-manager"
-version = "0.5.1"
+version = "0.5.2"
 description = ""
 authors = ["Oskar Vihriälä <oskar.vihriala@gmail.com>"]
 readme = "README.md"
