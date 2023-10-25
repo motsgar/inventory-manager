@@ -2,6 +2,7 @@ import random
 import string
 
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 
 from database import db
 
@@ -94,89 +95,94 @@ def get_category_properties(category_id: int):
     return [row.name for row in result]
 
 
+class CategoryExistsError(Exception):
+    pass
+
+
 def create_category(category_name: str, parent_id: int | None, properties: list[str]):
-    new_category_id = db.session.execute(
-        text(
-            """
-                INSERT INTO category (name, parent_id)
-                VALUES (:name, :parent_id)
-                RETURNING id;
-            """
-        ),
-        {"name": category_name, "parent_id": parent_id},
-    ).scalar()
+    try:
+        try:
+            new_category_id = db.session.execute(
+                text(
+                    """
+                        INSERT INTO category (name, parent_id)
+                        VALUES (:name, :parent_id)
+                        RETURNING id;
+                    """
+                ),
+                {"name": category_name, "parent_id": parent_id},
+            ).scalar()
+        except IntegrityError:
+            db.session.rollback()
+            raise CategoryExistsError()
+            # this is thrown also when a slash exists in the path
 
-    for property_name in properties:
-        db.session.execute(
-            text(
-                """
-                INSERT INTO category_property (category_id, name)
-                VALUES (:category_id, :property_name);
-                """
-            ),
-            {"category_id": new_category_id, "property_name": property_name},
-        )
+        for property_name in properties:
+            db.session.execute(
+                text(
+                    """
+                    INSERT INTO category_property (category_id, name)
+                    VALUES (:category_id, :property_name);
+                    """
+                ),
+                {"category_id": new_category_id, "property_name": property_name},
+            )
 
-    db.session.commit()
+        db.session.commit()
+
+    except Exception as e:
+        db.session.rollback()
+        raise e
 
 
-def edit_category_properties(path: list[str], properties: dict):
-    category_id = db.session.execute(
-        text(
-            """
-                WITH RECURSIVE category_hierarchy AS (
-                    SELECT id, parent_id, name, CAST(name AS text) AS path
-                    FROM category
-                    WHERE parent_id IS NULL
-                    UNION ALL
-                    SELECT category.id, category.parent_id, category.name, category_hierarchy.path || '/' || category.name 
-                    FROM category, category_hierarchy
-                    WHERE category.parent_id = category_hierarchy.id
-                )
-                SELECT id FROM category_hierarchy
-                WHERE path = :path;
-            """
-        ),
-        {"path": "/".join(path)},
-    ).scalar()
+class PropertyDoesNotExistOnCategoryError(Exception):
+    pass
 
+
+def edit_category_properties(category_id: int, properties: dict):
     # update each property name to the new name without breaking unique constraints if 2 names swap using a single sql query
     # first update all properties to a temporary random name returning the id and the old name
     # then update all properties to the new name using the id and the old name
+    try:
+        name_id_pairs = {}
 
-    name_id_pairs = {}
+        for old_name, new_name in properties.items():
+            random_name = "".join(
+                random.choices(string.ascii_uppercase + string.digits, k=30)
+            )
 
-    for old_name, new_name in properties.items():
-        random_name = "".join(
-            random.choices(string.ascii_uppercase + string.digits, k=30)
-        )
+            name_id_pairs[old_name] = db.session.execute(
+                text(
+                    """
+                        UPDATE category_property
+                        SET name = :temp_name
+                        WHERE category_id = :category_id AND name = :old_name
+                        RETURNING id;
+                    """
+                ),
+                {
+                    "temp_name": random_name,
+                    "category_id": category_id,
+                    "old_name": old_name,
+                },
+            ).fetchone()
+            if name_id_pairs[old_name] is None:
+                raise PropertyDoesNotExistOnCategoryError()
 
-        name_id_pairs[old_name] = db.session.execute(
-            text(
-                """
-                    UPDATE category_property
-                    SET name = :temp_name
-                    WHERE category_id = :category_id AND name = :old_name
-                    RETURNING id;
-                """
-            ),
-            {
-                "temp_name": random_name,
-                "category_id": category_id,
-                "old_name": old_name,
-            },
-        ).fetchone()
+        for old_name, new_name in properties.items():
+            db.session.execute(
+                text(
+                    """
+                        UPDATE category_property
+                        SET name = :new_name
+                        WHERE id = :id;
+                    """
+                ),
+                {"new_name": new_name, "id": name_id_pairs[old_name].id},
+            )
 
-    for old_name, new_name in properties.items():
-        db.session.execute(
-            text(
-                """
-                    UPDATE category_property
-                    SET name = :new_name
-                    WHERE id = :id;
-                """
-            ),
-            {"new_name": new_name, "id": name_id_pairs[old_name].id},
-        )
+        db.session.commit()
 
-    db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise e

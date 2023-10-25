@@ -9,10 +9,6 @@
 <!-- body -->
 
 {% block content%}
-{% if not_found %}
-<h1>Category not found</h1>
-{% else %}
-
 {{ folder_table(
 subcategories,
 "Create new subcategory",
@@ -26,7 +22,7 @@ path) }}
 <tbody>
     {% for property in category_properties %}
     <tr>
-        <td style="padding: 10px;">{{ property }}</td>
+        <td>{{ property }}</td>
     </tr>
     {% endfor %}
 </tbody>
@@ -35,7 +31,6 @@ path) }}
 <h2>Category has no properties</h2>
 {% endif %}
 {% endif %}
-
 
 {% if items is not none %}
 {% call simple_table("Items", "Create new item", "createNewItem()") %}
@@ -61,8 +56,6 @@ path) }}
 </tbody>
 {% endcall %}
 {% endif %}
-
-{% endif %}
 {% endblock %}
 
 
@@ -71,6 +64,8 @@ path) }}
 {% block popup %}
 
 {% call popup_wrapper("new-subcategory-popup", "Create a new subcategory") %}
+<input type="hidden" name="category-id" value="{{ category_info.id }}">
+<input type="hidden" name="action" value="new-subcategory">
 
 {{ popup_text_input("category-name", "name", "Name of new category") }}
 
@@ -87,7 +82,10 @@ path) }}
 
 {% endcall %}
 
-{% call popup_wrapper("edit-properties-popup", "Edit properties", "/category/" ~ path | join('/') ~ "/?action=edit") %}
+{% call popup_wrapper("edit-properties-popup", "Edit properties") %}
+<input type="hidden" name="action" value="edit-properties">
+<input type="hidden" name="category-id" value="{{ category_info.id }}">
+
 {% if category_properties is not none %}
 {% for property in category_properties %}
 {{ popup_text_input("category-property-" ~ property, "property." ~ property, property, property) }}
@@ -95,8 +93,8 @@ path) }}
 {% endif %}
 {% endcall %}
 
-{% call popup_wrapper("new-item-popup", "Create a new item", "/item") %}
-
+{% call popup_wrapper("new-item-popup", "Create a new item") %}
+<input type="hidden" name="action" value="new-item">
 <input type="hidden" name="category-id" value="{{ category_info.id }}">
 
 {{ popup_text_input("item-name", "name", "Name of new item") }}

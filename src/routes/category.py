@@ -1,6 +1,8 @@
-from flask import Blueprint, abort, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request
 
 from db.category import (
+    CategoryExistsError,
+    PropertyDoesNotExistOnCategoryError,
     create_category,
     edit_category_properties,
     get_all_categories,
@@ -9,6 +11,7 @@ from db.category import (
     get_subcategories,
 )
 from db.item import get_items_in_category
+from routes.item import route_new_item
 
 category_bp = Blueprint("category", __name__, url_prefix="/category")
 category_api_bp = Blueprint("category_api", __name__, url_prefix="/api/category")
@@ -46,7 +49,15 @@ def category(raw_path):
     else:
         category_info = get_category(path)
         if category_info is None:
-            abort(404)
+            return (
+                render_template(
+                    "not_found.html",
+                    error_message="Category not found",
+                    solve_message="To base category",
+                    base_path="/category/",
+                ),
+                404,
+            )
         child_categories = get_subcategories(category_info.id)
         items = get_items_in_category(category_info.id)
         category_properties = get_category_properties(category_info.id)
@@ -61,42 +72,76 @@ def category(raw_path):
     )
 
 
+def route_new_subcategory():
+    print(request.form)
+    try:
+        category_id_str = request.form["category-id"]
+        if category_id_str == "":
+            category_id = None
+        else:
+            category_id = int(category_id_str)
+        category_name = request.form["name"]
+        properties = request.form.getlist("category-property-name")
+    except KeyError:
+        abort(400)
+    except ValueError:
+        abort(400)
+
+    original_length = len(properties)
+    properties = list(set([property.strip() for property in properties]))
+    if len(properties) != original_length:
+        flash("Duplicate properties are not allowed", "error")
+        return
+    for property in properties:
+        if property == "":
+            flash("Property name cannot be empty", "error")
+            return
+
+    if category_name.strip() == "":
+        flash("Category name cannot be empty", "error")
+        return
+
+    if "/" in category_name:
+        flash("Category name cannot contain a slash", "error")
+        return
+
+    try:
+        create_category(category_name, category_id, properties)
+    except CategoryExistsError:
+        flash("A category with that name already exists in current path", "error")
+
+
+def route_edit_properties():
+    try:
+        category_id = int(request.form["category-id"])
+    except KeyError:
+        abort(400)
+    except ValueError:
+        abort(400)
+
+    properties = {}
+    for key, value in request.form.items():
+        if key.startswith("property."):
+            properties[key[9:]] = value
+
+    try:
+        edit_category_properties(category_id, properties)
+    except PropertyDoesNotExistOnCategoryError:
+        flash("Tried to change the name of a non existent property", "error")
+
+
 @category_bp.route("/", defaults={"raw_path": ""}, methods=["POST"])
 @category_bp.route("/<path:raw_path>/", methods=["POST"])
 def new_category(raw_path):
-    path = parse_path(raw_path)
+    action = request.form.get("action")
 
-    action = request.args.get("action")
-
-    if action == "edit":
-        properties = {}
-        for key, value in request.form.items():
-            if key.startswith("property."):
-                properties[key[9:]] = value
-
-        edit_category_properties(path, properties)
+    if action == "new-subcategory":
+        route_new_subcategory()
+    elif action == "edit-properties":
+        route_edit_properties()
+    elif action == "new-item":
+        route_new_item()
     else:
-        if len(path) == 0:
-            parent_id = None
-        else:
-            parent_category = get_category(path)
-            if parent_category is None:
-                return (
-                    render_template(
-                        "category.html",
-                        not_found=True,
-                    ),
-                    404,
-                )
+        abort(400)
 
-            parent_id = parent_category.id
-
-        name = request.form.get("name")
-        properties = request.form.getlist("category-property-name")
-
-        if name is None or properties is None:
-            abort(404)
-
-        create_category(name, parent_id, properties)
-
-    return redirect(request.referrer)
+    return redirect(request.path)

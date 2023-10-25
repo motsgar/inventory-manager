@@ -56,19 +56,25 @@ class LocationExistsError(Exception):
 
 def create_location(location_name: str, parent_id: int | None):
     try:
-        db.session.execute(
-            text(
-                """
-                    INSERT INTO location (name, parent_id)
-                    VALUES (:name, :parent_id);
-                """
-            ),
-            {"name": location_name, "parent_id": parent_id},
-        )
+        try:
+            db.session.execute(
+                text(
+                    """
+                        INSERT INTO location (name, parent_id)
+                        VALUES (:name, :parent_id);
+                    """
+                ),
+                {"name": location_name, "parent_id": parent_id},
+            )
+        except IntegrityError:
+            raise LocationExistsError()
+
         db.session.commit()
-    except IntegrityError:
+
+    except Exception as e:
         db.session.rollback()
-        raise LocationExistsError()
+        raise e
+        # this is thrown also when a slash exists in the path
 
 
 def get_all_locations():

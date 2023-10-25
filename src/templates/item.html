@@ -59,24 +59,30 @@
 
 {% block popup %}
 
-{% call popup_wrapper("edit-properties-popup", "Edit properties", "/item/" ~ item_info.id ~ "/?action=edit") %}
+{% call popup_wrapper("edit-item-properties-popup", "Edit properties") %}
+<input type="hidden" name="action" value="edit-item-properties">
 {% for property in properties %}
 {{ popup_text_input("item-property-" ~ property.name, "property." ~ property.name, property.name, property.value,
 required = false) }}
 {% endfor %}
 {% endcall %}
 
-{% call popup_wrapper("add-item-popup", "Add item", "/item/" ~ item_info.id ~ "/?action=new", "item-add-form") %}
-{{ popup_dropdown("item-add-location", "location", "Location") }}
+{% call popup_wrapper("add-item-instance-popup", "Add item") %}
+<input type="hidden" name="action" value="add-item-instance">
+{{ popup_dropdown("item-add-location", "location-id", "Location") }}
 {{ popup_number_input("item-add-count", "count", "Count", "1") }}
 {% endcall %}
 
-{% call popup_wrapper("edit-item-count-popup", "Edit item count", "/item/1/1/?action=edit", "item-edit-form") %}
+{% call popup_wrapper("edit-item-instance-count-popup", "Edit item count") %}
+<input type="hidden" name="action" value="edit-item-instance-count">
+<input type="hidden" name="item-instance-id" value="1" id="edit-item-instance-id">
 {{ popup_number_input("item-edit-count", "count", "Count", "0") }}
 {% endcall %}
 
-{% call popup_wrapper("move-item-location-popup", "Move items", "/item/1/1/?action=move", "item-move-form") %}
-{{ popup_dropdown("item-move-location", "location", "Move location") }}
+{% call popup_wrapper("move-item-instance-location-popup", "Move items") %}
+<input type="hidden" name="action" value="move-item-instance">
+<input type="hidden" name="item-instance-id" value="1" , id="move-item-instance-id">
+{{ popup_dropdown("item-move-location", "location-id", "Move location") }}
 {{ popup_number_input("item-move-count", "count", "Count", "1") }}
 {% endcall %}
 
@@ -89,14 +95,14 @@ required = false) }}
     let allLocations = null;
 
     function openEditPopup(itemLocation) {
-        const locationEditFormElement = document.getElementById('item-edit-form');
+        const locationEditFormElement = document.getElementById('edit-item-instance-id');
         const itemCountElement = document.getElementById('item-edit-count');
 
-        locationEditFormElement.setAttribute('action', `/item/{{ item_info.id }}/${itemLocation.id}/?action=edit`)
+        locationEditFormElement.setAttribute('value', itemLocation.id)
 
         itemCountElement.value = itemLocation.count;
 
-        openPopup("edit-item-count-popup");
+        openPopup("edit-item-instance-count-popup");
     }
 
     async function openMovePopup(itemLocation) {
@@ -104,11 +110,11 @@ required = false) }}
             allLocations = await fetch(`/api/location/all`).then(res => res.json())
         }
 
-        const locationEditFormElement = document.getElementById('item-move-form');
+        const locationEditFormElement = document.getElementById('move-item-instance-id');
         const itemLocationElement = document.getElementById('item-move-location');
         const itemCountElement = document.getElementById('item-move-count');
 
-        locationEditFormElement.setAttribute('action', `/item/{{ item_info.id }}/${itemLocation.id}/?action=move`)
+        locationEditFormElement.setAttribute('value', itemLocation.id)
 
         itemCountElement.value = Math.ceil(itemLocation.count / 2);
         itemCountElement.setAttribute('max', itemLocation.count)
@@ -123,7 +129,7 @@ required = false) }}
             itemLocationElement.appendChild(optionElement);
         }
 
-        openPopup("move-item-location-popup");
+        openPopup("move-item-instance-location-popup");
     }
 
     async function addItemPopup() {
@@ -131,7 +137,6 @@ required = false) }}
             allLocations = await fetch(`/api/location/all`).then(res => res.json())
         }
 
-        const itemAddFormElement = document.getElementById('item-add-form');
         const itemLocationElement = document.getElementById('item-add-location');
         const itemCountElement = document.getElementById('item-add-count');
 
@@ -143,11 +148,11 @@ required = false) }}
             itemLocationElement.appendChild(optionElement);
         }
 
-        openPopup("add-item-popup");
+        openPopup("add-item-instance-popup");
     }
 
     function editProperties() {
-        openPopup('edit-properties-popup');
+        openPopup('edit-item-properties-popup');
     }
 </script>
 {% endblock %}

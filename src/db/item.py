@@ -1,7 +1,8 @@
 from sqlalchemy import text
-from sqlalchemy.exc import IntegrityError, NoResultFound
+from sqlalchemy.exc import DataError, IntegrityError, NoResultFound
 
 from database import db
+from db.category import PropertyDoesNotExistOnCategoryError
 
 
 def get_item_locations(item_id: int):
@@ -88,98 +89,145 @@ def create_item_location(item_id: int, location_id: int, count: int):
 
 
 def edit_item_location_count(item_location_id: int, count: int):
-    if count > 0:
-        db.session.execute(
-            text(
-                """
-                    UPDATE item_location SET count = :count WHERE id = :item_location_id;
-                """
-            ),
-            {"item_location_id": item_location_id, "count": count},
-        )
-    else:
-        db.session.execute(
-            text(
-                """
-                    DELETE FROM item_location WHERE id = :item_location_id;
-                """
-            ),
-            {"item_location_id": item_location_id},
-        )
-    db.session.commit()
+    try:
+        if count > 0:
+            db.session.execute(
+                text(
+                    """
+                            UPDATE item_location SET count = :count WHERE id = :item_location_id;
+                        """
+                ),
+                {"item_location_id": item_location_id, "count": count},
+            )
+        else:
+            db.session.execute(
+                text(
+                    """
+                            DELETE FROM item_location WHERE id = :item_location_id;
+                        """
+                ),
+                {"item_location_id": item_location_id},
+            )
+        db.session.commit()
+
+    except Exception as e:
+        db.session.rollback()
+        raise e
 
 
-def move_items(item_location_id: int, new_location_id: int, count: int):
-    item_location_info = db.session.execute(
-        text(
-            """
-                SELECT count, item_id FROM item_location WHERE id = :item_location_id;
-            """
-        ),
-        {"item_location_id": item_location_id},
-    ).fetchone()
-
-    if item_location_info is None:
-        raise Exception("No item location with id found")
-
-    (items_in_current_location, item_id) = item_location_info
-
-    if count > items_in_current_location:
-        raise Exception("Tried to move more items than source has")
-
-    db.session.execute(
-        text(
-            """
-                INSERT INTO item_location (location_id, item_id, count)
-                VALUES (:new_location_id, :item_id, :count)
-                ON CONFLICT (location_id, item_id)
-                DO UPDATE SET count = item_location.count + :count;
-            """
-        ),
-        {"new_location_id": new_location_id, "item_id": item_id, "count": count},
-    )
-
-    if count == items_in_current_location:
-        db.session.execute(
-            text(
-                """
-                    DELETE FROM item_location WHERE id = :item_location_id;
-                """
-            ),
-            {"item_location_id": item_location_id},
-        )
-    else:
-        db.session.execute(
-            text(
-                """
-                UPDATE item_location SET count = count - :count WHERE id = :item_location_id;
-            """
-            ),
-            {"item_location_id": item_location_id, "count": count},
-        )
-    db.session.commit()
-
-
-def add_items(item_id: int, new_location_id: int, count: int):
-    db.session.execute(
-        text(
-            """
-                INSERT INTO item_location (location_id, item_id, count)
-                VALUES (:new_location_id, :item_id, :count)
-                ON CONFLICT (location_id, item_id)
-                DO UPDATE SET count = item_location.count + :count;
-            """
-        ),
-        {"new_location_id": new_location_id, "item_id": item_id, "count": count},
-    )
-    db.session.commit()
-
-
-class CategoryDoesNotExistError(Exception):
+class ItemInstanceDoesNotExistError(Exception):
     pass
 
 
-class PropertyDoesNotExistOnCategoryError(Exception):
+class MoreItemsThanSourceError(Exception):
+    pass
+
+
+def move_items(item_location_id: int, new_location_id: int, count: int):
+    try:
+        item_location_info = db.session.execute(
+            text(
+                """
+                    SELECT count, item_id FROM item_location WHERE id = :item_location_id;
+                """
+            ),
+            {"item_location_id": item_location_id},
+        ).fetchone()
+
+        if item_location_info is None:
+            raise ItemInstanceDoesNotExistError()
+
+        (items_in_current_location, item_id) = item_location_info
+
+        if count > items_in_current_location:
+            raise MoreItemsThanSourceError()
+
+        try:
+            db.session.execute(
+                text(
+                    """
+                        INSERT INTO item_location (location_id, item_id, count)
+                        VALUES (:new_location_id, :item_id, :count)
+                        ON CONFLICT (location_id, item_id)
+                        DO UPDATE SET count = item_location.count + :count;
+                    """
+                ),
+                {
+                    "new_location_id": new_location_id,
+                    "item_id": item_id,
+                    "count": count,
+                },
+            )
+        except DataError:
+            db.session.rollback()
+            raise IntegerTooLargeError()
+
+        if count == items_in_current_location:
+            db.session.execute(
+                text(
+                    """
+                        DELETE FROM item_location WHERE id = :item_location_id;
+                    """
+                ),
+                {"item_location_id": item_location_id},
+            )
+        else:
+            db.session.execute(
+                text(
+                    """
+                    UPDATE item_location SET count = count - :count WHERE id = :item_location_id;
+                """
+                ),
+                {"item_location_id": item_location_id, "count": count},
+            )
+        db.session.commit()
+
+    except Exception as e:
+        db.session.rollback()
+        raise e
+
+
+class IntegerTooLargeError(Exception):
+    pass
+
+
+class LocationOrItemDoesNotExistError(Exception):
+    pass
+
+
+def add_items(item_id: int, new_location_id: int, count: int):
+    try:
+        try:
+            db.session.execute(
+                text(
+                    """
+                        INSERT INTO item_location (location_id, item_id, count)
+                        VALUES (:new_location_id, :item_id, :count)
+                        ON CONFLICT (location_id, item_id)
+                        DO UPDATE SET count = item_location.count + :count;
+                    """
+                ),
+                {
+                    "new_location_id": new_location_id,
+                    "item_id": item_id,
+                    "count": count,
+                },
+            )
+        except DataError:
+            db.session.rollback()
+            raise IntegerTooLargeError()
+        except IntegrityError:
+            db.session.rollback()
+            raise LocationOrItemDoesNotExistError()
+
+        db.session.commit()
+
+    except Exception as e:
+        db.session.rollback()
+        raise e
+
+
+class CategoryDoesNotExistError(Exception):
     pass
 
 
@@ -316,28 +364,37 @@ def get_items_in_category(category_id: int):
 
 
 def edit_properties(item_id: int, properties: dict):
-    for property_name, property_value in properties.items():
-        db.session.execute(
-            text(
-                """
-                    INSERT INTO item_property (item_id, category_property_id, value)
-                    VALUES (:item_id, (
-                        SELECT id
-                        FROM category_property
-                        WHERE name = :property_name AND category_id = (
-                            SELECT category_id
-                            FROM item
-                            WHERE id = :item_id
-                        )
-                    ), :property_value)
-                    ON CONFLICT (item_id, category_property_id)
-                    DO UPDATE SET value = :property_value;
-                """
-            ),
-            {
-                "item_id": item_id,
-                "property_name": property_name,
-                "property_value": property_value,
-            },
-        )
-    db.session.commit()
+    try:
+        for property_name, property_value in properties.items():
+            try:
+                db.session.execute(
+                    text(
+                        """
+                            INSERT INTO item_property (item_id, category_property_id, value)
+                            VALUES (:item_id, (
+                                SELECT id
+                                FROM category_property
+                                WHERE name = :property_name AND category_id = (
+                                    SELECT category_id
+                                    FROM item
+                                    WHERE id = :item_id
+                                )
+                            ), :property_value)
+                            ON CONFLICT (item_id, category_property_id)
+                            DO UPDATE SET value = :property_value;
+                        """
+                    ),
+                    {
+                        "item_id": item_id,
+                        "property_name": property_name,
+                        "property_value": property_value,
+                    },
+                )
+            except IntegrityError:
+                raise PropertyDoesNotExistOnCategoryError()
+
+        db.session.commit()
+
+    except Exception as e:
+        db.session.rollback()
+        raise e

@@ -1,13 +1,6 @@
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
-from sqlalchemy.exc import IntegrityError
+from flask import Blueprint, abort, flash, redirect, render_template, request
 
-from db.item import (
-    CategoryDoesNotExistError,
-    PropertyDoesNotExistOnCategoryError,
-    add_items,
-    create_item_and_location,
-    get_items_in_location,
-)
+from db.item import get_items_in_location
 from db.location import (
     LocationExistsError,
     create_location,
@@ -15,6 +8,7 @@ from db.location import (
     get_location,
     get_sublocations,
 )
+from routes.item import route_new_item
 
 location_bp = Blueprint("location", __name__, url_prefix="/location")
 location_api_bp = Blueprint("location_api", __name__, url_prefix="/api/location")
@@ -68,52 +62,29 @@ def location(raw_path):
 
 def route_new_location():
     try:
-        location_id = int(request.form["location-id"])
+        location_id_str = request.form["location-id"]
+        if location_id_str == "":
+            location_id = None
+        else:
+            location_id = int(location_id_str)
         location_name = request.form["name"]
     except KeyError:
         abort(400)
     except ValueError:
         abort(400)
 
+    if location_name.strip() == "":
+        flash("Location name cannot be empty", "error")
+        return
+
+    if "/" in location_name:
+        flash("Location name cannot contain a slash", "error")
+        return
+
     try:
         create_location(location_name, location_id)
     except LocationExistsError:
         flash("A location with that name already exists in current path", "error")
-
-
-def route_new_item():
-    try:
-        properties = {}
-        for key, value in request.form.items():
-            if key.startswith("property."):
-                properties[key[9:]] = value
-
-        name = request.form["name"]
-        count = int(request.form["count"])
-        if count < 1 or count > 2147483647:
-            abort(400)
-        category_id = int(request.form["category-id"])
-        location_id = int(request.form["location-id"])
-    except KeyError:
-        abort(400)
-    except ValueError:
-        abort(400)
-
-    try:
-        create_item_and_location(
-            name,
-            properties,
-            category_id,
-            location_id,
-            count,
-        )
-    except CategoryDoesNotExistError:
-        flash("Tried to create a item for a non existent category", "error")
-    except PropertyDoesNotExistOnCategoryError:
-        flash(
-            "Tried to create a item with a property that does not exist on the category",
-            "error",
-        )
 
 
 @location_bp.route("/", defaults={"raw_path": ""}, methods=["POST"])
