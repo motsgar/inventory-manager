@@ -1,3 +1,6 @@
+import random
+import string
+
 from sqlalchemy import text
 
 from database import db
@@ -112,6 +115,68 @@ def create_category(category_name: str, parent_id: int | None, properties: list[
                 """
             ),
             {"category_id": new_category_id, "property_name": property_name},
+        )
+
+    db.session.commit()
+
+
+def edit_category_properties(path: list[str], properties: dict):
+    category_id = db.session.execute(
+        text(
+            """
+                WITH RECURSIVE category_hierarchy AS (
+                    SELECT id, parent_id, name, CAST(name AS text) AS path
+                    FROM category
+                    WHERE parent_id IS NULL
+                    UNION ALL
+                    SELECT category.id, category.parent_id, category.name, category_hierarchy.path || '/' || category.name 
+                    FROM category, category_hierarchy
+                    WHERE category.parent_id = category_hierarchy.id
+                )
+                SELECT id FROM category_hierarchy
+                WHERE path = :path;
+            """
+        ),
+        {"path": "/".join(path)},
+    ).scalar()
+
+    # update each property name to the new name without breaking unique constraints if 2 names swap using a single sql query
+    # first update all properties to a temporary random name returning the id and the old name
+    # then update all properties to the new name using the id and the old name
+
+    name_id_pairs = {}
+
+    for old_name, new_name in properties.items():
+        random_name = "".join(
+            random.choices(string.ascii_uppercase + string.digits, k=30)
+        )
+
+        name_id_pairs[old_name] = db.session.execute(
+            text(
+                """
+                    UPDATE category_property
+                    SET name = :temp_name
+                    WHERE category_id = :category_id AND name = :old_name
+                    RETURNING id;
+                """
+            ),
+            {
+                "temp_name": random_name,
+                "category_id": category_id,
+                "old_name": old_name,
+            },
+        ).fetchone()
+
+    for old_name, new_name in properties.items():
+        db.session.execute(
+            text(
+                """
+                    UPDATE category_property
+                    SET name = :new_name
+                    WHERE id = :id;
+                """
+            ),
+            {"new_name": new_name, "id": name_id_pairs[old_name].id},
         )
 
     db.session.commit()

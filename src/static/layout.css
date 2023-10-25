@@ -16,13 +16,12 @@ noscript {
 }
 
 #site-body {
-	height: 200vh;
 	margin: 0px 20px;
 	margin-top: 52px;
 }
 
 #site-block {
-	max-width: 600px;
+	max-width: 1200px;
 	margin: auto;
 	padding-top: 10px;
 }

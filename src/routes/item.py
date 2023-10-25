@@ -4,6 +4,7 @@ from db.item import (
     add_items,
     create_item_and_location,
     edit_item_location_count,
+    edit_properties,
     get_item_info,
     get_item_locations,
     get_item_properties,
@@ -31,15 +32,26 @@ def item(item_id):
 
 @item_bp.route("/<int:item_id>/", methods=["POST"])
 def item_new(item_id):
-    count_str = request.form.get("count")
-    location_str = request.form.get("location")
-    if count_str is None or location_str is None:
-        abort(404)
+    action = request.args.get("action")
 
-    count = int(count_str)
-    new_location_id = int(location_str)
+    if action == "new":
+        count_str = request.form.get("count")
+        location_str = request.form.get("location")
+        if count_str is None or location_str is None:
+            abort(404)
 
-    add_items(item_id, new_location_id, count)
+        count = int(count_str)
+        new_location_id = int(location_str)
+
+        add_items(item_id, new_location_id, count)
+
+    elif action == "edit":
+        properties = {}
+        for key, value in request.form.items():
+            if key.startswith("property."):
+                properties[key[9:]] = value
+
+        edit_properties(item_id, properties)
 
     return redirect(request.referrer)
 

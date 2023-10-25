@@ -45,10 +45,11 @@
 </script>
 {% endmacro %}
 
-{% macro popup_text_input(input_id, input_name, input_label) %}
+{% macro popup_text_input(input_id, input_name, input_label, default_value = "", required = true) %}
 <div class="popup-input popup-text-input">
     <label for="{{ input_id }}">{{ input_label }}</label>
-    <input type="text" id="{{ input_id }}" name="{{ input_name }}" required>
+    <input type="text" id="{{ input_id }}" name="{{ input_name }}" value="{{ default_value }}" {% if required
+        %}required{% endif %}>
 </div>
 {% endmacro %}
 

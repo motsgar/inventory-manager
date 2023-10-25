@@ -4,6 +4,21 @@ hr {
 	border-bottom: 2px solid #ddd;
 }
 
+button {
+	display: inline-block;
+	padding: 12px 16px;
+	background-color: #ff6600;
+	border: none;
+	text-align: center;
+	text-decoration: none;
+	font-size: 16px;
+	cursor: pointer;
+}
+
+button:hover {
+	background-color: #ff8a3c;
+}
+
 /* Breadcrumbs */
 
 .breadcrumbs {
@@ -43,6 +58,7 @@ hr {
 	width: 100%;
 	border-collapse: collapse;
 	background-color: #3d3d3d;
+	white-space: nowrap;
 }
 
 .item-list th,
@@ -67,7 +83,8 @@ hr {
 	background-color: #555;
 }
 
-.item-list tbody td {
+.item-list td:has(a),
+.item-list td.no-table-padding {
 	padding: 0;
 }
 
@@ -89,21 +106,6 @@ hr {
 
 .table-section-header h2 {
 	margin: 0;
-}
-
-.table-section-header button {
-	display: inline-block;
-	padding: 12px 16px;
-	background-color: #ff6600;
-	border: none;
-	text-align: center;
-	text-decoration: none;
-	font-size: 16px;
-	cursor: pointer;
-}
-
-.table-section-header button:hover {
-	background-color: #ff8a3c;
 }
 
 /* folder table */

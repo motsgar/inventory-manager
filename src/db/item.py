@@ -290,9 +290,36 @@ def get_items_in_category(category_id: int):
         ).fetchall()
 
         item_properties = [property.value for property in properties_result]
-        print(item)
         item = {"id": item.id, "name": item.name, "total_count": item.total_count}
         item["properties"] = item_properties
         items_with_properties.append(item)
 
     return items_with_properties
+
+
+def edit_properties(item_id: int, properties: dict):
+    for property_name, property_value in properties.items():
+        db.session.execute(
+            text(
+                """
+                    INSERT INTO item_property (item_id, category_property_id, value)
+                    VALUES (:item_id, (
+                        SELECT id
+                        FROM category_property
+                        WHERE name = :property_name AND category_id = (
+                            SELECT category_id
+                            FROM item
+                            WHERE id = :item_id
+                        )
+                    ), :property_value)
+                    ON CONFLICT (item_id, category_property_id)
+                    DO UPDATE SET value = :property_value;
+                """
+            ),
+            {
+                "item_id": item_id,
+                "property_name": property_name,
+                "property_value": property_value,
+            },
+        )
+    db.session.commit()

@@ -1,0 +1,18 @@
+.min-width-column {
+	width: 0;
+	white-space: nowrap;
+}
+
+.item-actions-column .flex-wrap {
+	display: flex;
+}
+
+.item-actions-column button {
+	padding: 10px 14px;
+	background-color: transparent;
+	color: #ff944c;
+}
+
+.item-actions-column button:hover {
+	color: #fff;
+}

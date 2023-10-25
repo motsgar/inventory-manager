@@ -87,6 +87,14 @@ path) }}
 
 {% endcall %}
 
+{% call popup_wrapper("edit-properties-popup", "Edit properties", "/category/" ~ path | join('/') ~ "/?action=edit") %}
+{% if category_properties is not none %}
+{% for property in category_properties %}
+{{ popup_text_input("category-property-" ~ property, "property." ~ property, property, property) }}
+{% endfor %}
+{% endif %}
+{% endcall %}
+
 {% call popup_wrapper("new-item-popup", "Create a new item", "/item") %}
 
 <input type="hidden" name="category-id" value="{{ category_info.id }}">
@@ -101,7 +109,7 @@ path) }}
 <h3>Custom properties</h3>
 <div id="category-properties" class="popup-input popup-gap">
     {% for property in category_properties %}
-    {{ popup_text_input("item-property-" ~ property, "property." ~ property, property) }}
+    {{ popup_text_input("item-property-" ~ property, "property." ~ property, property, "", required = false) }}
     {% endfor %}
 </div>
 {% else %}
@@ -221,6 +229,10 @@ path) }}
         }
 
         openPopup('new-item-popup');
+    }
+
+    function editCategoryProperties() {
+        openPopup('edit-properties-popup');
     }
 </script>
 {% endblock %}

@@ -23,10 +23,12 @@
 	position: fixed;
 	padding: 20px;
 	background-color: #302e33;
-	top: 50%;
+	top: calc(35% + 20px);
 	left: 50%;
 	transform: translate(-50%, -50%);
 	z-index: 3;
+	max-height: 60%;
+	overflow-y: auto;
 }
 
 .popup-header {

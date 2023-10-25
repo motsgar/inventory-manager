@@ -2,6 +2,7 @@ from flask import Blueprint, abort, redirect, render_template, request, url_for
 
 from db.category import (
     create_category,
+    edit_category_properties,
     get_all_categories,
     get_category,
     get_category_properties,
@@ -65,27 +66,37 @@ def category(raw_path):
 def new_category(raw_path):
     path = parse_path(raw_path)
 
-    if len(path) == 0:
-        parent_id = None
+    action = request.args.get("action")
+
+    if action == "edit":
+        properties = {}
+        for key, value in request.form.items():
+            if key.startswith("property."):
+                properties[key[9:]] = value
+
+        edit_category_properties(path, properties)
     else:
-        parent_category = get_category(path)
-        if parent_category is None:
-            return (
-                render_template(
-                    "category.html",
-                    not_found=True,
-                ),
-                404,
-            )
+        if len(path) == 0:
+            parent_id = None
+        else:
+            parent_category = get_category(path)
+            if parent_category is None:
+                return (
+                    render_template(
+                        "category.html",
+                        not_found=True,
+                    ),
+                    404,
+                )
 
-        parent_id = parent_category.id
+            parent_id = parent_category.id
 
-    name = request.form.get("name")
-    properties = request.form.getlist("category-property-name")
+        name = request.form.get("name")
+        properties = request.form.getlist("category-property-name")
 
-    if name is None or properties is None:
-        abort(404)
+        if name is None or properties is None:
+            abort(404)
 
-    create_category(name, parent_id, properties)
+        create_category(name, parent_id, properties)
 
     return redirect(request.referrer)
