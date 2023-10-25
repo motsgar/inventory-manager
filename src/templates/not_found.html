@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+
+
+<!-- body -->
+
+{% block content %}
+<h1>{{ error_message }}</h1>
+<a href="{{ base_path }}" class="button">
+    <p style="margin: 0;">{{ solve_message }}</p>
+</a>
+{% endblock %}

@@ -56,7 +56,8 @@
 {% macro popup_number_input(input_id, input_name, input_label, minimum) %}
 <div class="popup-input popup-number-input">
     <label for="{{ input_id }}">{{ input_label }}</label>
-    <input type="number" id="{{ input_id }}" name="{{ input_name }}" value="1" min="{{ minimum }}" required>
+    <input type="number" id="{{ input_id }}" name="{{ input_name }}" value="1" min="{{ minimum }}" max="2147483647"
+        required>
 </div>
 {% endmacro %}
 

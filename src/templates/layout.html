@@ -37,6 +37,33 @@
             {% block content %}{% endblock %}
         </div>
     </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div id="error-messages-popup" class="popup-wrapper" style="display: block;">
+        <div class="popup">
+            <div class="popup-header">
+                <h2>An error happened</h2>
+                <button class="popup-close-button" id="error-messages-popup-close-button"><span>&times;</span></button>
+            </div>
+            <div class="popup-body">
+                <ul class="flashes">
+                    {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="popup-overlay"></div>
+    </div>
+    <script>
+        document.getElementById("error-messages-popup-close-button").addEventListener("click", () => {
+            document.getElementById("error-messages-popup").style.display = "none";
+        });
+    </script>
+    {% endif %}
+    {% endwith %}
+
     {% block popup %}
     {% endblock %}
 

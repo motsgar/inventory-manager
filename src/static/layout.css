@@ -18,6 +18,7 @@ noscript {
 #site-body {
 	margin: 0px 20px;
 	margin-top: 52px;
+	height: calc(100vh - 52px);
 }
 
 #site-block {

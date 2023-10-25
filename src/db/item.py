@@ -1,4 +1,5 @@
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError, NoResultFound
 
 from database import db
 
@@ -174,6 +175,14 @@ def add_items(item_id: int, new_location_id: int, count: int):
     db.session.commit()
 
 
+class CategoryDoesNotExistError(Exception):
+    pass
+
+
+class PropertyDoesNotExistOnCategoryError(Exception):
+    pass
+
+
 def create_item_and_location(
     item_name: str,
     item_properties: dict[str, str],
@@ -181,52 +190,61 @@ def create_item_and_location(
     location_id: int,
     count: int,
 ):
-    item_insert_result = db.session.execute(
-        text(
-            """
-                INSERT INTO item (name, category_id)
-                VALUES (:name, :category_id)
-                RETURNING id;
-            """
-        ),
-        {
-            "name": item_name,
-            "category_id": category_id,
-        },
-    )
-    item_id = item_insert_result.scalar()
+    try:
+        try:
+            item_id = db.session.execute(
+                text(
+                    """
+                        INSERT INTO item (name, category_id)
+                        VALUES (:name, :category_id)
+                        RETURNING id;
+                    """
+                ),
+                {
+                    "name": item_name,
+                    "category_id": category_id,
+                },
+            ).scalar()
+        except NoResultFound:
+            raise CategoryDoesNotExistError()
 
-    for property_name, property_value in item_properties.items():
+        for property_name, property_value in item_properties.items():
+            try:
+                db.session.execute(
+                    text(
+                        """
+                            INSERT INTO item_property (item_id, category_property_id, value)
+                            VALUES (:item_id, (
+                                SELECT id
+                                FROM category_property
+                                WHERE name = :property_name AND category_id = :category_id
+                            ), :property_value);
+                        """
+                    ),
+                    {
+                        "item_id": item_id,
+                        "property_name": property_name,
+                        "category_id": category_id,
+                        "property_value": property_value,
+                    },
+                )
+            except IntegrityError:
+                raise PropertyDoesNotExistOnCategoryError()
+
         db.session.execute(
             text(
                 """
-                    INSERT INTO item_property (item_id, category_property_id, value)
-                    VALUES (:item_id, (
-                        SELECT id
-                        FROM category_property
-                        WHERE name = :property_name AND category_id = :category_id
-                    ), :property_value);
+                    INSERT INTO item_location (item_id, location_id, count)
+                    VALUES (:item_id, :location_id, :count);
                 """
             ),
-            {
-                "item_id": item_id,
-                "property_name": property_name,
-                "category_id": category_id,
-                "property_value": property_value,
-            },
+            {"item_id": item_id, "location_id": location_id, "count": count},
         )
 
-    db.session.execute(
-        text(
-            """
-                INSERT INTO item_location (item_id, location_id, count)
-                VALUES (:item_id, :location_id, :count);
-            """
-        ),
-        {"item_id": item_id, "location_id": location_id, "count": count},
-    )
-
-    db.session.commit()
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise e
 
 
 def get_items_in_location(location_id: int):

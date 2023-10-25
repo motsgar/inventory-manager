@@ -6,10 +6,6 @@
 <!-- body -->
 
 {% block content %}
-{% if not_found %}
-<h1>Location not found</h1>
-{% else %}
-
 {{ folder_table(
 sublocations,
 "Create new sublocation",
@@ -37,8 +33,6 @@ path) }}
 </tbody>
 {% endcall %}
 {% endif %}
-
-{% endif %}
 {% endblock %}
 
 
@@ -47,10 +41,14 @@ path) }}
 {% block popup %}
 
 {% call popup_wrapper("new-sublocation-popup", "Create a new sublocation") %}
+<input type="hidden" name="action" value="new-location">
+<input type="hidden" name="location-id" value="{{ location_info.id }}">
+
 {{ popup_text_input("location-name", "name", "Name of new location") }}
 {% endcall %}
 
-{% call popup_wrapper("new-item-popup", "Create a new item", "/item") %}
+{% call popup_wrapper("new-item-popup", "Create a new item") %}
+<input type="hidden" name="action" value="new-item">
 <input type="hidden" name="location-id" value="{{ location_info.id }}">
 
 {{ popup_text_input("new-item-name", "name", "Name of new item") }}
@@ -69,6 +67,7 @@ path) }}
 {% endcall %}
 
 {% endblock %}
+
 
 <!-- scripts -->
 

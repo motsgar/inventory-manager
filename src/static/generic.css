@@ -4,6 +4,7 @@ hr {
 	border-bottom: 2px solid #ddd;
 }
 
+.button,
 button {
 	display: inline-block;
 	padding: 12px 16px;

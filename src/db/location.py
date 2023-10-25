@@ -1,4 +1,5 @@
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 
 from database import db
 
@@ -49,17 +50,25 @@ def get_sublocations(location_id: int | None):
     ).fetchall()
 
 
+class LocationExistsError(Exception):
+    pass
+
+
 def create_location(location_name: str, parent_id: int | None):
-    db.session.execute(
-        text(
-            """
-                INSERT INTO location (name, parent_id)
-                VALUES (:name, :parent_id);
-            """
-        ),
-        {"name": location_name, "parent_id": parent_id},
-    )
-    db.session.commit()
+    try:
+        db.session.execute(
+            text(
+                """
+                    INSERT INTO location (name, parent_id)
+                    VALUES (:name, :parent_id);
+                """
+            ),
+            {"name": location_name, "parent_id": parent_id},
+        )
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        raise LocationExistsError()
 
 
 def get_all_locations():
