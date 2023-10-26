@@ -2,6 +2,7 @@ from flask import Blueprint, abort, flash, redirect, render_template, request
 
 from db.category import (
     CategoryExistsError,
+    DuplicatePropertyNameError,
     PropertyDoesNotExistOnCategoryError,
     create_category,
     edit_category_properties,
@@ -87,6 +88,8 @@ def route_new_subcategory():
     except ValueError:
         abort(400)
 
+    category_name = category_name.strip()
+
     original_length = len(properties)
     properties = list(set([property.strip() for property in properties]))
     if len(properties) != original_length:
@@ -97,7 +100,7 @@ def route_new_subcategory():
             flash("Property name cannot be empty", "error")
             return
 
-    if category_name.strip() == "":
+    if category_name == "":
         flash("Category name cannot be empty", "error")
         return
 
@@ -122,12 +125,14 @@ def route_edit_properties():
     properties = {}
     for key, value in request.form.items():
         if key.startswith("property."):
-            properties[key[9:]] = value
+            properties[key[9:]] = value.strip()
 
     try:
         edit_category_properties(category_id, properties)
     except PropertyDoesNotExistOnCategoryError:
         flash("Tried to change the name of a non existent property", "error")
+    except DuplicatePropertyNameError:
+        flash("Tried to set name of two properties to the same value", "error")
 
 
 @category_bp.route("/", defaults={"raw_path": ""}, methods=["POST"])

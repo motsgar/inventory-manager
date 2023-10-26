@@ -73,7 +73,9 @@ def route_new_location():
     except ValueError:
         abort(400)
 
-    if location_name.strip() == "":
+    location_name = location_name.strip()
+
+    if location_name == "":
         flash("Location name cannot be empty", "error")
         return
 

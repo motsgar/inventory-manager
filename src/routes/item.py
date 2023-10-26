@@ -48,7 +48,7 @@ def route_edit_item_properties(item_id: int):
     properties = {}
     for key, value in request.form.items():
         if key.startswith("property."):
-            properties[key[9:]] = value
+            properties[key[9:]] = value.strip()
 
     try:
         edit_properties(item_id, properties)

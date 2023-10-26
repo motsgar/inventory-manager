@@ -139,6 +139,10 @@ class PropertyDoesNotExistOnCategoryError(Exception):
     pass
 
 
+class DuplicatePropertyNameError(Exception):
+    pass
+
+
 def edit_category_properties(category_id: int, properties: dict):
     # update each property name to the new name without breaking unique constraints if 2 names swap using a single sql query
     # first update all properties to a temporary random name returning the id and the old name
@@ -170,16 +174,19 @@ def edit_category_properties(category_id: int, properties: dict):
                 raise PropertyDoesNotExistOnCategoryError()
 
         for old_name, new_name in properties.items():
-            db.session.execute(
-                text(
-                    """
-                        UPDATE category_property
-                        SET name = :new_name
-                        WHERE id = :id;
-                    """
-                ),
-                {"new_name": new_name, "id": name_id_pairs[old_name].id},
-            )
+            try:
+                db.session.execute(
+                    text(
+                        """
+                            UPDATE category_property
+                            SET name = :new_name
+                            WHERE id = :id;
+                        """
+                    ),
+                    {"new_name": new_name, "id": name_id_pairs[old_name].id},
+                )
+            except IntegrityError:
+                raise DuplicatePropertyNameError()
 
         db.session.commit()
 
