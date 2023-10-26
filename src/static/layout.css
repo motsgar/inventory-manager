@@ -56,9 +56,10 @@ nav > ul > li {
 nav > ul > li > a {
 	text-decoration: none;
 	color: #fff;
-	padding: 0px 20px;
+	padding: 0px min(20px, max(5px, calc(12vw - 20px)));
 	display: flex;
 	align-items: center;
+	text-align: center;
 }
 
 nav > ul > li > a:hover {

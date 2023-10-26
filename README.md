@@ -6,24 +6,22 @@ Deployed at [https://inventory-manager.motsgar.fi](https://inventory-manager.mot
 
 ## Current state
 
-The application functionality is basically done. Only deletion of some items isn't implemented yet.
-The UI is visually and functionally done for the current functionality. Though I am still going to add
-slightly more information to the UI in places where eg. the current category of a item isn't shown yet.
+The application is basically done. I will still add a simple help page explaining how to use the application. There are also a few minor inconsistencies in the naming of application concepts making the application confusing to use.
 
-I also though of adding a simple page explaining how to use the application. There are also a few minor
-inconsistencies in the naming of concepts making the application confusing to use.
+I had to drop a few features I thought about but didn't have time to implement as I didn't really manage
+my time well. Some features like dynamic popup elements and css styling took more time to implement that I originally thought.
 
-I had to drop the feature of item locations possibly being other items, as I didn't really manage
-my time well to implement any additional features. Other courses took more time than expected and I didn't
-put enough time to this projet to get everything done I originally wanted. Something else
-to this category of features would be eg. ability to search and filter based on properties. Some features
-took more time to implement that I originally thought. Eg. dynamic frontend ui for button popups.
+-   Ability of items also being considered as locations to allow a item to be inside another item.
+-   Ability to search and filter based on properties and their values. A search in a category or a location
+    would show results from all subcategories and sublocations.
+-   A category inheriting all the properties of its parent categories.
+-   Ability to add and remove properties from a category.
 
 I hope that it is ok, that the "finnishing touches" were done a few days after the official deadline.
 
-### Finalizations that would be done after the night of the official deadline
+### Features that were completed after the deadline
 
--   [ ] Deletion of categories, locations and items (item instance / count deletion works)
+-   [x] Deletion of categories, locations and items (item instance / count deletion works)
 -   [x] Cleaner UI
 -   [x] Better error messages for invalid inputs
 -   [x] Kind of related to the previous one, but fix python type hints complaining about stuff being None

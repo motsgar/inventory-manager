@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, redirect
+from flask import Flask, redirect, render_template
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from database import db
@@ -22,6 +22,11 @@ db.init_app(app)
 @app.route("/")
 def index():
     return redirect("/location")
+
+
+@app.route("/help")
+def help():
+    return render_template("help.html")
 
 
 app.register_blueprint(location.location_bp)

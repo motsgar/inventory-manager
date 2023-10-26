@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1>Inventory manager help</h1>
+
+<h2>Item</h2>
+<p>
+    A item is something that has a category and optional properties based on its category. Items also
+    have locations. As each item can be in multiple locations, a item has a list of locations. For each
+    location there is a count of how many of the item are in that location. This might cause some confusion
+    as the item can mean both a single item type with properties, or physical items in a location.
+</p>
+
+<h2>Category</h2>
+<p>
+    Categories create a folder structure for items. Each category can have subcategories.
+    Categories are used to group items together. Each category has a name and a list of properties. The
+    properties are used to define the properties of the items in the category. I would like for category
+    properties to propagate to child categories, but I didn't have time to implement it. Each category
+    also has a list of items (item types) in that category.
+</p>
+
+<h2>Location</h2>
+<p>
+    Locations are physical locations where items can be stored. Like categories, locations can have
+    sublocations. Each location has a name and a list of items (physical) in that location.
+</p>
+
+{% endblock %}

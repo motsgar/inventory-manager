@@ -23,6 +23,8 @@
 	margin: 10px 0;
 	display: inline-block;
 	font-size: 18px;
+	width: 100%;
+	word-wrap: break-word;
 }
 
 .basic-link:hover {
@@ -36,6 +38,7 @@
 .category-name {
 	margin: 10px 0;
 	font-size: 18px;
+	width: 100%;
 }
 
 .category-name span {
