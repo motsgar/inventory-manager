@@ -14,7 +14,9 @@ subcategories,
 "Create new subcategory",
 "createNewSubcategory()",
 '/category',
-path) }}
+path,
+"Edit category" if path else "",
+"editCategory()" if path else "") }}
 
 {% if category_properties is not none %}
 {% if category_properties %}
@@ -62,6 +64,13 @@ path) }}
 <!-- popups -->
 
 {% block popup %}
+
+{% call popup_wrapper("edit-category-popup", "Edit category") %}
+<input type="hidden" name="action" value="edit-category">
+<input type="hidden" name="category-id" value="{{ category_info.id }}">
+{{ popup_text_input("category-edit-name", "name", "Name", path[-1]) }}
+<button class="form-delete-button" onclick="deleteCategory(event)">Delete category</button>
+{% endcall %}
 
 {% call popup_wrapper("new-subcategory-popup", "Create a new subcategory") %}
 <input type="hidden" name="category-id" value="{{ category_info.id }}">
@@ -122,6 +131,27 @@ path) }}
 
 {% block scripts %}
 <script>
+
+    function editCategory() {
+        openPopup("edit-category-popup");
+    }
+
+    function deleteCategory(e) {
+        e.preventDefault();
+
+        if (confirm("Are you sure you want to delete this category?\nAll subcategories and items will be deleted as well")) {
+            const formElement = document.createElement('form');
+            formElement.setAttribute('method', 'post');
+            formElement.setAttribute('action', '/category/{{ path[:-1] | join("/") }}/'); // Trick to make the redirect url to the previous page
+            formElement.innerHTML = '<input type="hidden" name="action" value="delete-category">';
+            formElement.innerHTML += '<input type="hidden" name="category-id" value="{{ category_info.id }}">';
+            document.body.appendChild(formElement);
+            formElement.submit();
+            document.body.removeChild(formElement);
+        }
+    }
+
+
     let loadingCategories = false;
     let previousCategory = "";
     async function onCategoryChange() {

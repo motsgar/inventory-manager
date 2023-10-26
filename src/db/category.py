@@ -193,3 +193,70 @@ def edit_category_properties(category_id: int, properties: dict):
     except Exception as e:
         db.session.rollback()
         raise e
+
+
+class CategoryDoesNotExistError(Exception):
+    pass
+
+
+def edit_category(category_id: int, new_name: str) -> str:
+    try:
+        category_parent_path = db.session.execute(
+            text(
+                """
+                    WITH RECURSIVE category_hierarchy AS (
+                        SELECT id, parent_id, name, CAST(name AS text) AS path
+                        FROM category
+                        WHERE parent_id IS NULL
+                        UNION ALL
+                        SELECT category.id, category.parent_id, category.name, category_hierarchy.path || '/' || category.name
+                        FROM category, category_hierarchy
+                        WHERE category.parent_id = category_hierarchy.id
+                    )
+                    SELECT path FROM category_hierarchy
+                    WHERE id = :category_id;
+                """
+            ),
+            {"category_id": category_id},
+        ).scalar()
+
+        if category_parent_path is None:
+            raise CategoryDoesNotExistError()
+
+        try:
+            db.session.execute(
+                text(
+                    """
+                        UPDATE category
+                        SET name = :new_name
+                        WHERE id = :category_id;
+                    """
+                ),
+                {"category_id": category_id, "new_name": new_name},
+            )
+        except IntegrityError:
+            raise CategoryExistsError()
+
+        db.session.commit()
+        return "/".join(category_parent_path.split("/")[:-1])
+
+    except Exception as e:
+        db.session.rollback()
+        raise e
+
+
+def delete_category(category_id: int):
+    try:
+        db.session.execute(
+            text(
+                """
+                    DELETE FROM category
+                    WHERE id = :category_id;
+                """
+            ),
+            {"category_id": category_id},
+        )
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise e

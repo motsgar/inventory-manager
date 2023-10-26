@@ -4,11 +4,14 @@ from db.category import PropertyDoesNotExistOnCategoryError
 from db.item import (
     CategoryDoesNotExistError,
     IntegerTooLargeError,
+    ItemDoesNotExistError,
     ItemInstanceDoesNotExistError,
     LocationOrItemDoesNotExistError,
     MoreItemsThanSourceError,
     add_items,
     create_item_and_location,
+    delete_item,
+    edit_item,
     edit_item_location_count,
     edit_properties,
     get_item_info,
@@ -42,6 +45,31 @@ def item(item_id):
         properties=properties,
         item_info=item_info,
     )
+
+
+def route_edit_item(item_id: int):
+    try:
+        new_name = request.form["name"]
+    except KeyError:
+        abort(400)
+    except ValueError:
+        abort(400)
+
+    new_name = new_name.strip()
+
+    if new_name == "":
+        flash("Item name cannot be empty", "error")
+        return
+
+    # Nothing can go wrong here
+    edit_item(item_id, new_name)
+
+
+def route_delete_item(item_id: int):
+    try:
+        return delete_item(item_id)
+    except ItemDoesNotExistError:
+        flash("Tried to delete a non existent item", "error")
 
 
 def route_edit_item_properties(item_id: int):
@@ -125,7 +153,13 @@ def route_move_item_instance():
 def item_new(item_id):
     action = request.form.get("action")
 
-    if action == "edit-item-properties":
+    if action == "edit-item":
+        route_edit_item(item_id)
+    elif action == "delete-item":
+        item_category_path = route_delete_item(item_id)
+        if item_category_path is not None:
+            return redirect(f"/category/{item_category_path}/")
+    elif action == "edit-item-properties":
         route_edit_item_properties(item_id)
     elif action == "add-item-instance":
         route_add_item_instances(item_id)

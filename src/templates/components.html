@@ -14,11 +14,41 @@
 </div>
 {% endmacro %}
 
-{% macro simple_table(section_name, section_action, section_action_function) %}
+{% macro main_section(section_name, section_action, section_action_function, section_secondary_action,
+section_secondary_action_function) %}
 <div class="table-section">
     <div class="table-section-header">
-        <h2>{{ section_name }}</h2>
-        <button onclick="{{ section_action_function }}">{{ section_action }}</button>
+        <div>
+            <h1>{{ section_name }}</h1>
+        </div>
+        <div class="table-right-buttons">
+            <button onclick="{{ section_action_function }}">{{ section_action }}</button>
+            {% if section_secondary_action %}
+            <button class="table-secondary-button" onclick="{{ section_secondary_action_function }}">{{
+                section_secondary_action
+                }}</button>
+            {% endif %}
+        </div>
+    </div>
+    {{ caller() }}
+</div>
+{% endmacro %}
+
+{% macro simple_table(section_name, section_action, section_action_function, section_secondary_action,
+section_secondary_action_function) %}
+<div class="table-section">
+    <div class="table-section-header">
+        <div>
+            <h2>{{ section_name }}</h2>
+        </div>
+        <div class="table-right-buttons">
+            <button onclick="{{ section_action_function }}">{{ section_action }}</button>
+            {% if section_secondary_action %}
+            <button class="table-secondary-button" onclick="{{ section_secondary_action_function }}">{{
+                section_secondary_action
+                }}</button>
+            {% endif %}
+        </div>
     </div>
     <div class="table-scroll-container">
         <table class="item-list">
@@ -34,11 +64,19 @@
 </svg>
 {% endmacro %}
 
-{% macro folder_table(subfolders, action_name, action_function, root_path, path) %}
+{% macro folder_table(subfolders, action_name, action_function, root_path, path, section_secondary_action,
+section_secondary_action_function) %}
 <div class="table-section">
     <div class="table-section-header">
         {{ breadcrumbs(root_path, path) }}
-        <button onclick="{{ action_function }}">{{ action_name }}</button>
+        <div class="table-right-buttons">
+            <button onclick="{{ action_function }}">{{ action_name }}</button>
+            {% if section_secondary_action %}
+            <button class="table-secondary-button" onclick="{{ section_secondary_action_function }}">{{
+                section_secondary_action
+                }}</button>
+            {% endif %}
+        </div>
     </div>
     <div class="table-scroll-container">
         <table class="item-list">

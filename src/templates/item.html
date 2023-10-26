@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% from "popup.html" import popup_wrapper, popup_text_input, popup_number_input, popup_dropdown %}
-{% from "components.html" import simple_table %}
+{% from "components.html" import simple_table, main_section %}
 
 {% block head %}
 <link rel="stylesheet" href="/static/item.css" />
@@ -10,8 +10,13 @@
 
 {% block content%}
 
-<h1>{{ item_info.name }}</h1>
+{% call main_section(item_info.name, "Edit item", "editItem()") %}
+<div class="category-name"><span>Category:</span>
+    <a class="basic-link" href="/category/{{ item_info.category_path }}">/{{item_info.category_path }}</a>
+</div>
+{% endcall %}
 
+{% if properties %}
 {% call simple_table("Properties", "Edit properties", "editProperties()") %}
 <thead>
     <tr>
@@ -28,6 +33,9 @@
     {% endfor %}
 </tbody>
 {% endcall %}
+{% else %}
+<h2>No properties exist for the category of this item</h2>
+{% endif %}
 
 {% call simple_table("Items", "Add item", "addItemPopup()") %}
 <thead>
@@ -58,6 +66,12 @@
 <!-- popups -->
 
 {% block popup %}
+
+{% call popup_wrapper("edit-item-popup", "Edit item") %}
+<input type="hidden" name="action" value="edit-item">
+{{ popup_text_input("item-edit-name", "name", "Name", item_info.name) }}
+<button class="form-delete-button" onclick="deleteItem(event)">Delete item</button>
+{% endcall %}
 
 {% call popup_wrapper("edit-item-properties-popup", "Edit properties") %}
 <input type="hidden" name="action" value="edit-item-properties">
@@ -93,6 +107,24 @@ required = false) }}
 {% block scripts %}
 <script>
     let allLocations = null;
+
+    function editItem() {
+        openPopup('edit-item-popup');
+    }
+
+    function deleteItem(e) {
+        e.preventDefault();
+
+        if (confirm("Are you sure you want to delete this item?")) {
+            const formElement = document.createElement('form');
+            formElement.setAttribute('method', 'post');
+            formElement.setAttribute('action', '/item/{{ item_info.id }}');
+            formElement.innerHTML = '<input type="hidden" name="action" value="delete-item">';
+            document.body.appendChild(formElement);
+            formElement.submit();
+            document.body.removeChild(formElement);
+        }
+    }
 
     function openEditPopup(itemLocation) {
         const locationEditFormElement = document.getElementById('edit-item-instance-id');

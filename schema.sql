@@ -2,7 +2,7 @@ DROP TABLE IF EXISTS location, category, category_property, item, item_location,
 
 CREATE TABLE location (
     id SERIAL PRIMARY KEY,
-    parent_id INTEGER REFERENCES location,
+    parent_id INTEGER REFERENCES location ON DELETE CASCADE,
     name TEXT NOT NULL,
 
     UNIQUE NULLS NOT DISTINCT (parent_id, name),
@@ -13,7 +13,7 @@ CREATE TABLE location (
 
 CREATE TABLE category (
     id SERIAL PRIMARY KEY,
-    parent_id INTEGER REFERENCES category,
+    parent_id INTEGER REFERENCES category ON DELETE CASCADE,
     name TEXT NOT NULL,
 
     UNIQUE NULLS NOT DISTINCT (parent_id, name),
@@ -24,7 +24,7 @@ CREATE TABLE category (
 
 CREATE TABLE category_property (
     id SERIAL PRIMARY KEY,
-    category_id INTEGER NOT NULL REFERENCES category,
+    category_id INTEGER NOT NULL REFERENCES category ON DELETE CASCADE,
     name TEXT NOT NULL,
 
     UNIQUE (category_id, name),
@@ -34,14 +34,14 @@ CREATE TABLE category_property (
 
 CREATE TABLE item (
     id SERIAL PRIMARY KEY,
-    category_id INTEGER NOT NULL REFERENCES category,
+    category_id INTEGER NOT NULL REFERENCES category ON DELETE CASCADE,
     name TEXT NOT NULL
 );
 
 CREATE TABLE item_location (
     id SERIAL PRIMARY KEY,
-    item_id INTEGER NOT NULL REFERENCES item,
-    location_id INTEGER NOT NULL REFERENCES location,
+    item_id INTEGER NOT NULL REFERENCES item ON DELETE CASCADE,
+    location_id INTEGER NOT NULL REFERENCES location ON DELETE CASCADE,
     count INTEGER NOT NULL,
 
     UNIQUE (location_id, item_id),
@@ -51,8 +51,8 @@ CREATE TABLE item_location (
 
 CREATE TABLE item_property (
     id SERIAL PRIMARY KEY,
-    item_id INTEGER NOT NULL REFERENCES item,
-    category_property_id INTEGER NOT NULL REFERENCES category_property,
+    item_id INTEGER NOT NULL REFERENCES item ON DELETE CASCADE,
+    category_property_id INTEGER NOT NULL REFERENCES category_property ON DELETE CASCADE,
     value TEXT NOT NULL,
 
     UNIQUE (item_id, category_property_id)

@@ -100,13 +100,52 @@ button:hover {
 
 .table-section-header {
 	display: flex;
+	flex-wrap: wrap;
 	justify-content: space-between;
 	align-items: center;
 	gap: 8px;
 }
 
+.table-section-header div {
+	max-width: 100%;
+}
+
+.table-section-header h1,
 .table-section-header h2 {
 	margin: 0;
+	max-width: 100%;
+	word-wrap: break-word;
+}
+
+.table-right-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	flex-direction: row-reverse;
+	justify-content: flex-end;
+	gap: 8px;
+	justify-self: flex-end;
+}
+
+.table-right-buttons button.table-secondary-button {
+	background-color: transparent;
+	color: #ff944c;
+	padding: 0;
+	padding: 12px 0;
+}
+
+.table-right-buttons button.table-secondary-button:hover {
+	color: #fff;
+}
+
+.form-delete-button {
+	margin-top: 10px;
+	width: 100%;
+	background-color: #cb2a2a;
+	color: #fff;
+}
+
+.form-delete-button:hover {
+	background-color: #ff4d4d;
 }
 
 /* folder table */

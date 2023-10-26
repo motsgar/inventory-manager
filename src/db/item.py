@@ -64,11 +64,28 @@ def get_item_properties(item_id: int):
     ).fetchall()
 
 
+# also gets full category path
 def get_item_info(item_id: int):
     return db.session.execute(
         text(
             """
-                SELECT id, category_id, name FROM item WHERE id = :item_id
+                WITH RECURSIVE category_hierarchy AS (
+                    SELECT id, parent_id, name, CAST(name AS text) AS path
+                    FROM category
+                    WHERE parent_id IS NULL
+                    UNION ALL
+                    SELECT category.id, category.parent_id, category.name, category_hierarchy.path || '/' || category.name
+                    FROM category, category_hierarchy
+                    WHERE category.parent_id = category_hierarchy.id
+                )
+                SELECT
+                    i.id AS id,
+                    i.name AS name,
+                    i.category_id AS category_id,
+                    ch.path AS category_path
+                FROM item i
+                JOIN category_hierarchy ch ON i.category_id = ch.id
+                WHERE i.id = :item_id;
             """
         ),
         {"item_id": item_id},
@@ -394,6 +411,70 @@ def edit_properties(item_id: int, properties: dict):
                 raise PropertyDoesNotExistOnCategoryError()
 
         db.session.commit()
+
+    except Exception as e:
+        db.session.rollback()
+        raise e
+
+
+def edit_item(item_id: int, new_name: str):
+    try:
+        db.session.execute(
+            text(
+                """
+                    UPDATE item SET name = :new_name WHERE id = :item_id;
+                """
+            ),
+            {"item_id": item_id, "new_name": new_name},
+        )
+        db.session.commit()
+
+    except Exception as e:
+        db.session.rollback()
+        raise e
+
+
+class ItemDoesNotExistError(Exception):
+    pass
+
+
+def delete_item(item_id: int) -> str:
+    try:
+        item_category_path = db.session.execute(
+            text(
+                """
+                    WITH RECURSIVE category_hierarchy AS (
+                        SELECT id, parent_id, name, CAST(name AS text) AS path
+                        FROM category
+                        WHERE parent_id IS NULL
+                        UNION ALL
+                        SELECT category.id, category.parent_id, category.name, category_hierarchy.path || '/' || category.name
+                        FROM category, category_hierarchy
+                        WHERE category.parent_id = category_hierarchy.id
+                    )
+                    SELECT ch.path AS path
+                    FROM item i
+                    JOIN category_hierarchy ch ON i.category_id = ch.id
+                    WHERE i.id = :item_id;
+                """
+            ),
+            {"item_id": item_id},
+        ).scalar()
+
+        if item_category_path is None:
+            raise ItemDoesNotExistError()
+
+        db.session.execute(
+            text(
+                """
+                    DELETE FROM item WHERE id = :item_id;
+                """
+            ),
+            {"item_id": item_id},
+        )
+        db.session.commit()
+
+        return item_category_path
 
     except Exception as e:
         db.session.rollback()

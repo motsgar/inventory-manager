@@ -4,6 +4,8 @@ from db.item import get_items_in_location
 from db.location import (
     LocationExistsError,
     create_location,
+    delete_location,
+    edit_location,
     get_all_locations,
     get_location,
     get_sublocations,
@@ -60,6 +62,44 @@ def location(raw_path):
     )
 
 
+def route_edit_location():
+    try:
+        location_id = int(request.form["location-id"])
+        new_name = request.form["name"]
+    except KeyError:
+        abort(400)
+    except ValueError:
+        abort(400)
+
+    new_name = new_name.strip()
+
+    if new_name == "":
+        flash("Location name cannot be empty", "error")
+        return
+
+    if "/" in new_name:
+        flash("Location name cannot contain a slash", "error")
+        return
+
+    try:
+        parent_location_path = edit_location(location_id, new_name)
+        return "/location/" + parent_location_path + "/" + new_name + "/"
+    except LocationExistsError:
+        flash("A location with that name already exists in current path", "error")
+
+
+def route_delete_location():
+    try:
+        location_id = int(request.form["location-id"])
+    except KeyError:
+        abort(400)
+    except ValueError:
+        abort(400)
+
+    # Nothing can go wrong here
+    delete_location(location_id)
+
+
 def route_new_location():
     try:
         location_id_str = request.form["location-id"]
@@ -94,7 +134,13 @@ def route_new_location():
 def new_location(raw_path):
     action = request.form.get("action")
 
-    if action == "new-location":
+    if action == "edit-location":
+        new_location_path = route_edit_location()
+        if new_location_path is not None:
+            return redirect(new_location_path)
+    elif action == "delete-location":
+        route_delete_location()
+    elif action == "new-location":
         route_new_location()
     elif action == "new-item":
         route_new_item()

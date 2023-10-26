@@ -16,3 +16,28 @@
 .item-actions-column button:hover {
 	color: #fff;
 }
+
+.basic-link {
+	color: #ff944c;
+	text-decoration: none;
+	margin: 10px 0;
+	display: inline-block;
+	font-size: 18px;
+}
+
+.basic-link:hover {
+	color: #fff;
+}
+
+.item-name {
+	margin: 10px 0;
+}
+
+.category-name {
+	margin: 10px 0;
+	font-size: 18px;
+}
+
+.category-name span {
+	margin-right: 10px;
+}

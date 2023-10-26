@@ -103,3 +103,70 @@ def get_all_locations():
         }
         for location in locations
     ]
+
+
+class LocationDoesNotExistError(Exception):
+    pass
+
+
+def edit_location(location_id: int, new_name: str) -> str:
+    try:
+        location_parent_path = db.session.execute(
+            text(
+                """
+                    WITH RECURSIVE location_hierarchy AS (
+                        SELECT id, parent_id, name, CAST(name AS text) AS path
+                        FROM location
+                        WHERE parent_id IS NULL
+                        UNION ALL
+                        SELECT location.id, location.parent_id, location.name, location_hierarchy.path || '/' || location.name
+                        FROM location, location_hierarchy
+                        WHERE location.parent_id = location_hierarchy.id
+                    )
+                    SELECT path FROM location_hierarchy
+                    WHERE id = :location_id;
+                """
+            ),
+            {"location_id": location_id},
+        ).scalar()
+
+        if location_parent_path is None:
+            raise LocationDoesNotExistError()
+
+        try:
+            db.session.execute(
+                text(
+                    """
+                        UPDATE location
+                        SET name = :new_name
+                        WHERE id = :location_id;
+                    """
+                ),
+                {"location_id": location_id, "new_name": new_name},
+            )
+        except IntegrityError:
+            raise LocationExistsError()
+
+        db.session.commit()
+        return "/".join(location_parent_path.split("/")[:-1])
+
+    except Exception as e:
+        db.session.rollback()
+        raise e
+
+
+def delete_location(location_id: int):
+    try:
+        db.session.execute(
+            text(
+                """
+                    DELETE FROM location
+                    WHERE id = :location_id;
+                """
+            ),
+            {"location_id": location_id},
+        )
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise e

@@ -5,6 +5,8 @@ from db.category import (
     DuplicatePropertyNameError,
     PropertyDoesNotExistOnCategoryError,
     create_category,
+    delete_category,
+    edit_category,
     edit_category_properties,
     get_all_categories,
     get_category,
@@ -71,6 +73,44 @@ def category(raw_path):
         category_info=category_info,
         category_properties=category_properties,
     )
+
+
+def route_edit_category():
+    try:
+        category_id = int(request.form["category-id"])
+        new_name = request.form["name"]
+    except KeyError:
+        abort(400)
+    except ValueError:
+        abort(400)
+
+    new_name = new_name.strip()
+
+    if new_name == "":
+        flash("Category name cannot be empty", "error")
+        return
+
+    if "/" in new_name:
+        flash("Category name cannot contain a slash", "error")
+        return
+
+    try:
+        parent_category_path = edit_category(category_id, new_name)
+        return "/location/" + parent_category_path + "/" + new_name + "/"
+    except CategoryExistsError:
+        flash("A category with that name already exists in current path", "error")
+
+
+def route_delete_category():
+    try:
+        category_id = int(request.form["category-id"])
+    except KeyError:
+        abort(400)
+    except ValueError:
+        abort(400)
+
+    # Nothing can go wrong here
+    delete_category(category_id)
 
 
 def route_new_subcategory():
@@ -140,7 +180,13 @@ def route_edit_properties():
 def new_category(raw_path):
     action = request.form.get("action")
 
-    if action == "new-subcategory":
+    if action == "edit-category":
+        new_category_path = route_edit_category()
+        if new_category_path is not None:
+            return redirect(new_category_path)
+    elif action == "delete-category":
+        route_delete_category()
+    elif action == "new-subcategory":
         route_new_subcategory()
     elif action == "edit-properties":
         route_edit_properties()
